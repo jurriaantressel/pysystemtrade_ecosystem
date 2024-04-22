@@ -3,7 +3,7 @@
 A dockerized pysystemtrade ecosystem made for quick deployment and migration of production and testing environments.
 
 The environment consists of the following components; 
-- container running the continous processes; 
+- container running the continuous processes; 
   - stack_handler
   - capital_update. 
 - container running sequentially running end of day processes; 
@@ -25,9 +25,9 @@ The environment consists of the following components;
   - moving csv and db backup files to external storage via samba
   - committing and pushing reports to remote repo
 
-Prerequisits
+Prerequisites
 - Required; A private branch of pysystemtrade as ([discussed here](https://github.com/robcarver17/pysystemtrade/discussions/533)), The repo is pulled when image is built. All configs must be in the repo. 
-- Optional; A remote git repo for saving your psystemtrade reports,  [like Mr. Carver himself does](https://github.com/robcarver17/reports)
+- Optional; A remote git repo for saving your pysystemtrade reports,  [like Mr. Carver himself does](https://github.com/robcarver17/reports)
 
 Table of Contents
 =================
@@ -49,6 +49,17 @@ Table of Contents
 ## Initial setup instructions
 
 1) clone this repo to host machine.
+   1) Set github environment variables:
+    ```
+    GITHUB_USERNAME=<user>
+    GITHUB_TOKEN=<token>
+    GITHUB_REPO_NAME=pysystemtrade_ecosystem
+    ```
+   2) From within your projects directory, Clone the github repository:
+    ```
+    git clone https://$GITHUB_USERNAME:$GITHUB_TOKEN@github.com/$GITHUB_USERNAME/$GITHUB_REPO_NAME.git $GITHUB_REPO_NAME
+    cd $GITHUB_REPO_NAME
+    ```
 2) Add public fork of ib_gateway as subtree - see [Add ib_gateway subtree](#Add-ib_gateway-subtree) section below. (added as the second step to avoid git throwing error that working tree has modifications. If this appears  commiting changes will resolve)
 3) Add private repo URI in place of placeholder URI in two files `pysystemtrade_ecosystem/pysystemtrade/Dockerfile` and `pysystemtrade_ecosystem/ipython/Dockerfile`;
 
