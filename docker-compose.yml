@@ -2,8 +2,89 @@ version: '3.9'
 
 services:
 
+  mongo_db:
+      container_name: mongo_db${NAME_SUFFIX}
+      image: mongo
+      restart: on-failure
+      volumes:
+        - mongo_db:/data/db
+        - mongo_conf:/data/configdb
+      networks:
+        channel:
+          ipv4_address: ${IPV4_NETWORK_PART}0.2
+      logging:
+        options:
+          max-size: "5m"
+          max-file: "3"
+
+  db_backup:
+      image: alpine
+      container_name: db_backup${NAME_SUFFIX}
+      volumes:
+        - mongo_db:/data/db
+        - mongo_conf:/data/configdb
+        - ${DB_BACKUP_PATH}:/backup
+      command: sh -c "tar -zcvf /backup/mongo.tar.gz /data/"
+      init: true
+      logging:
+        options:
+          max-size: "200k"
+          max-file: "1"
+
+  db_restore:
+      image: alpine
+      profiles: ["restore"]
+      container_name: db_restore${NAME_SUFFIX}
+      volumes:
+        - mongo_db:/data/db
+        - mongo_conf:/data/configdb
+        - ${DB_BACKUP_PATH}:/backup
+      command: sh -c "cd /data/ && tar -zxvf /backup/mongo.tar.gz --strip 1"
+      init: true
+      logging:
+        options:
+          max-size: "200k"
+          max-file: "1"
+
+  ib_gateway:
+      container_name: ib_gateway${NAME_SUFFIX}
+      image: ghcr.io/extrange/ibkr:stable
+      restart: always
+      ports:
+        - "6082:6080"
+        - "8888:8888"
+      environment:
+        USERNAME: ${TWSUSERID}
+        PASSWORD: ${TWSPASSWORD}
+        GATEWAY_OR_TWS: tws #gateway
+        TWOFA_TIMEOUT_ACTION: "restart"
+        IBC_TradingMode: ${TRADINGMODE}
+        IBC_ReadOnlyApi: no
+        IBC_SecondFactorDevice: "IB Key"
+        IBC_ReloginAfterSecondFactorAuthenticationTimeout: yes
+        IBC_AcceptNonBrokerageAccountWarning: yes
+        IBC_LogStructureScope: known
+        IBC_LogStructureWhen: openclose
+        IBC_ExistingSessionDetectedAction: primary
+        IBC_AutoRestartTime: "06:00 PM"
+        IBC_AcceptIncomingConnectionAction: "reject"
+        IBC_ConfirmCryptoCurrencyOrders: transmit
+      volumes:
+        - gateway_jts:/root/Jts
+      networks:
+        channel:
+          ipv4_address: ${IPV4_NETWORK_PART}0.3
+      logging:
+        options:
+          max-size: "1m"
+          max-file: "2"
+      ulimits:
+        nofile:
+          soft: 10000
+          hard: 10000
+
   stack_handler:
-      image: pysystem_image
+      image: pysystemtrade
       build:
         context: ./pysystemtrade
         dockerfile: ./Dockerfile
@@ -33,7 +114,7 @@ services:
           max-file: "3"
 
   price_updates:
-      image: pysystem_image
+      image: pysystemtrade
       container_name: price_updates${NAME_SUFFIX}
       restart: on-failure
       environment:
@@ -57,7 +138,7 @@ services:
           max-file: "3"
 
   capital_update:
-      image: pysystem_image
+      image: pysystemtrade
       container_name: capital_update${NAME_SUFFIX}
       restart: on-failure
       environment:
@@ -67,7 +148,7 @@ services:
       depends_on:
         - ib_gateway
         - mongo_db
-        - stack_handler   # needed to avoid building same image twice
+        - stack_handler    # needed to avoid building same image twice
       volumes:
         - ./logs/capital_update:/home/logs
       networks:
@@ -82,7 +163,7 @@ services:
           max-file: "3"
 
   cleaner:
-      image: pysystem_image
+      image: pysystemtrade
       container_name: cleaner${NAME_SUFFIX}
       restart: on-failure
       environment:
@@ -91,7 +172,7 @@ services:
       command: ["/bin/bash", "-c", "command_scripts/cleaner_commands.bash"]
       depends_on:
         - mongo_db
-        - stack_handler   # needed to avoid building same image twice
+        - stack_handler    # needed to avoid building same image twice
       networks:
         channel:
           ipv4_address: ${IPV4_NETWORK_PART}0.10
@@ -104,7 +185,7 @@ services:
           max-file: "1"
 
   daily_processes:
-      image: pysystem_image
+      image: pysystemtrade
       container_name: daily_processes${NAME_SUFFIX}
       environment:
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
@@ -113,7 +194,7 @@ services:
       depends_on:
         - ib_gateway
         - mongo_db
-        - stack_handler   # needed to avoid building same image twice
+        - stack_handler    # needed to avoid building same image twice
       volumes:
         - ./reports:/home/reports
         - ./backtests:/home/backtests
@@ -129,57 +210,17 @@ services:
           max-size: "10m"
           max-file: "3"
 
-
-  ib_gateway:
-      build:
-        context: ./ib_gateway
-        dockerfile: ./Dockerfile
-      container_name: ib_gateway${NAME_SUFFIX}
-      restart: always
-      ports:
-        - "4002:4002"
-        - "5900:5900"
-      environment:
-        TWSUSERID: ${TWSUSERID}
-        TWSPASSWORD: ${TWSPASSWORD}
-        TRADING_MODE: ${TRADINGMODE}
-        TWS_PORT: 4002
-        VNC_PORT: 5900
-      volumes:
-        - gateway_jts:/root/Jts
-      networks:
-        channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.3
-      logging:
-        options:
-          max-size: "1m"
-          max-file: "2"
-
-  mongo_db:
-      container_name: mongo_db${NAME_SUFFIX}
-      image: mongo
-      restart: on-failure
-      volumes:
-        - mongo_db:/data/db
-        - mongo_conf:/data/configdb
-      networks:
-        channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.2
-      logging:
-        options:
-          max-size: "5m"
-          max-file: "3"
-
   jupyter:
+      image: pysystemtrade_jupyter
       build:
         context: jupyter
         dockerfile: ./Dockerfile
         args:
-          GIT_TOKEN: add_personal_access_token_here
+          GIT_TOKEN: ${GIT_TOKEN}
       container_name: jupyter${NAME_SUFFIX}
       restart: always
       ports:
-        - "8888:8888"
+        - "8889:8888"
       volumes:
         - ./reports:/home/reports
         - ./csv_backup:/home/csv_backup
@@ -197,9 +238,9 @@ services:
           max-file: "1"
 
   csv_backup:
-      image: pysystem_image
+      image: pysystemtrade
       depends_on:
-        - stack_handler   # needed to avoid building same image twice
+        - stack_handler    # needed to avoid building same image twice
         - mongo_db
       container_name: csv_backup${NAME_SUFFIX}
       networks:
@@ -214,34 +255,6 @@ services:
           max-size: "200k"
           max-file: "1"
 
-  db_backup:
-      image: alpine
-      container_name: db_backup${NAME_SUFFIX}
-      volumes:
-        - mongo_db:/data/db
-        - mongo_conf:/data/configdb
-        - ./db_backup:/backup
-      command: sh -c "tar -zcvf /backup/backup_mongo.tar.gz /data/"
-      init: true
-      logging:
-        options:
-          max-size: "200k"
-          max-file: "1"
-
-  db_restore:
-      image: alpine    
-      profiles: ["restore"]
-      volumes:
-        - mongo_db:/data/db
-        - mongo_conf:/data/configdb
-        - ./db_backup:/backup
-      command: sh -c "cd /data/ && tar -xvf /backup/backup_db.tar --strip 1; cd /data/ && tar -xvf /backup/backup_conf.tar --strip 1"
-      init: true
-      logging:
-        options:
-          max-size: "200k"
-          max-file: "1"
-
 volumes:
   mongo_db:
     name: mongo_db_volume${NAME_SUFFIX}
@@ -250,11 +263,12 @@ volumes:
   gateway_jts:
     name: gateway_jts_volume${NAME_SUFFIX}
 
-
 networks:
+  default:
+    name: pysystemtrade
   channel:
     driver: bridge
-    name: channel${NAME_SUFFIX}
+    name: pysystemtrade${NAME_SUFFIX}
     ipam:
       config:
         - subnet: ${IPV4_NETWORK_PART}0.0/16

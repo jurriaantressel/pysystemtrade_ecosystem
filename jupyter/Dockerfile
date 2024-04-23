@@ -1,4 +1,6 @@
-FROM python:3.8.12 as builder
+FROM python:3.10.13 as builder
+
+RUN echo "Starting Docker build..."
 
 # LABEL
 LABEL maintainer="tobias@anti-gravity.as"
@@ -6,11 +8,12 @@ LABEL version="0.1"
 LABEL description="This is custom Docker Image for creating a jupyterlab container in the pysystemtrade_ecosystem"
 
 ARG GIT_TOKEN
+RUN echo "ARG GIT_TOKEN=$GIT_TOKEN"
 
 RUN mkdir /opt/projects
-RUN git clone -b my_branch https://${GIT_TOKEN}:@github.com/GITUSERNAME/private_pysystemtrade_repo.git /opt/projects/pysystemtrade
+RUN git clone -b develop https://$GIT_TOKEN:@github.com/makutaku/pysystemtrade.git /opt/projects/pysystemtrade
 
-FROM python:3.8.12 as final_stage
+FROM python:3.10.13 as final_stage
 
 RUN  ln -sf /usr/share/zoneinfo/Europe/London /etc/timezone && \
      ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime

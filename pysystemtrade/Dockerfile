@@ -1,4 +1,7 @@
-FROM python:3.8.12 as builder
+FROM python:3.10.13 as builder
+
+RUN echo "Starting Docker build..."
+
 
 # LABEL
 LABEL maintainer="tobias@anti-gravity.as"
@@ -6,16 +9,18 @@ LABEL version="0.1"
 LABEL description="This is custom Docker Image for creating a pysystemtrade container in the pysystemtrade_ecosystem"
 
 ARG GIT_TOKEN
+RUN echo "ARG GIT_TOKEN=$GIT_TOKEN"
+
 
 RUN mkdir /opt/projects
-RUN git clone -b my_branch https://${GIT_TOKEN}:@github.com/GITUSERNAME/private_pysystemtrade_repo.git /opt/projects/pysystemtrade
+RUN git clone -b develop https://$GIT_TOKEN:@github.com/makutaku/pysystemtrade.git /opt/projects/pysystemtrade
 
-FROM python:3.8.12 as final_stage
+
+FROM python:3.10.13 as final_stage
 
 ARG SCRIPT_PATH=$SCRIPT_PATH
+RUN echo "ARG SCRIPT_PATH=$SCRIPT_PATH"
 
-ENV IPV4_NETWORK_PART=$IPV4_NETWORK_PART
-ENV PYSYS_CODE=$PYSYS_CODE
 ENV SCRIPT_PATH=$SCRIPT_PATH
 ENV PATH "$PATH:$SCRIPT_PATH"
 
@@ -27,6 +32,7 @@ RUN yes | apt-get install vim
 
 RUN mkdir /opt/projects
 RUN mkdir /opt/projects/pysystemtrade
+
 
 COPY --from=builder /opt/projects/pysystemtrade/requirements.txt /opt/projects/requirements.txt
 
@@ -50,3 +56,5 @@ RUN mkdir /home/echos
 RUN mkdir /home/csv_backup
 RUN mkdir /home/reports
 RUN mkdir /home/logs
+
+RUN echo "Building complete."
