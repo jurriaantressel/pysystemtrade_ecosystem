@@ -1,8 +1,5 @@
 FROM python:3.10.13 as builder
 
-RUN echo "Starting Docker build..."
-
-
 # LABEL
 LABEL maintainer="tobias@anti-gravity.as"
 LABEL version="0.1"
@@ -13,6 +10,7 @@ RUN echo "ARG GIT_TOKEN=$GIT_TOKEN"
 
 
 RUN mkdir /opt/projects
+RUN git clone -b master https://$GIT_TOKEN:@github.com/makutaku/private_pysystemtrade.git /opt/projects/private_pysystemtrade
 RUN git clone -b develop https://$GIT_TOKEN:@github.com/makutaku/pysystemtrade.git /opt/projects/pysystemtrade
 
 
@@ -56,5 +54,3 @@ RUN mkdir /home/echos
 RUN mkdir /home/csv_backup
 RUN mkdir /home/reports
 RUN mkdir /home/logs
-
-RUN echo "Building complete."
