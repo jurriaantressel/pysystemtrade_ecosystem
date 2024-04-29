@@ -25,7 +25,6 @@ RUN apt-get update
 RUN yes | apt-get install vim
 
 ARG PYSYS_REPO=pysystemtrade
-ARG PRIVATE_REPO=private_pysystemtrade
 ARG PROJECT_DIR=/opt/projects
 
 RUN mkdir $PROJECT_DIR

@@ -85,8 +85,6 @@ ENV SCRIPT_PATH=${SCRIPT_PATH:-$PROJECT_DIR/$PYSYS_REPO/sysproduction/linux/scri
 RUN echo ">>>>>>>>>>>>>> SCRIPT_PATH=$SCRIPT_PATH"
 ENV PATH "$PATH:$SCRIPT_PATH"
 
-
-
 COPY --from=builder $PROJECT_DIR/$PYSYS_REPO/requirements.txt $PROJECT_DIR/requirements.txt
 
 RUN pip3 install --upgrade pip
