@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   mongo_db:
-      container_name: mongo_db${NAME_SUFFIX}
+      container_name: mongo_db_${NAME_SUFFIX}
       image: mongo
       restart: on-failure
       volumes:
@@ -19,7 +19,7 @@ services:
 
   db_backup:
       image: alpine
-      container_name: db_backup${NAME_SUFFIX}
+      container_name: db_backup_${NAME_SUFFIX}
       volumes:
         - mongo_db:/data/db
         - mongo_conf:/data/configdb
@@ -34,7 +34,7 @@ services:
   db_restore:
       image: alpine
       profiles: ["restore"]
-      container_name: db_restore${NAME_SUFFIX}
+      container_name: db_restore_${NAME_SUFFIX}
       volumes:
         - mongo_db:/data/db
         - mongo_conf:/data/configdb
@@ -47,12 +47,12 @@ services:
           max-file: "1"
 
   ib_gateway:
-      container_name: ib_gateway${NAME_SUFFIX}
+      container_name: ib_gateway_${NAME_SUFFIX}
       image: ghcr.io/extrange/ibkr:stable
       restart: always
       ports:
         - "6082:6080"
-        - "8888:8888"
+        - "${IB_PORT}:8888"
       environment:
         USERNAME: ${TWSUSERID}
         PASSWORD: ${TWSPASSWORD}
@@ -108,7 +108,7 @@ services:
           EMAIL_SERVER: ${EMAIL_SERVER}
           EMAIL_TO: ${EMAIL_TO}
           EMAIL_PORT: ${EMAIL_PORT}
-      container_name: stack_handler${NAME_SUFFIX}
+      container_name: stack_handler_${NAME_SUFFIX}
       restart: on-failure
       environment:
         TZ: ${TZ}
@@ -133,7 +133,7 @@ services:
 
   price_updates:
       image: pysystemtrade
-      container_name: price_updates${NAME_SUFFIX}
+      container_name: price_updates_${NAME_SUFFIX}
       restart: on-failure
       environment:
         TZ: ${TZ}
@@ -157,7 +157,7 @@ services:
 
   capital_update:
       image: pysystemtrade
-      container_name: capital_update${NAME_SUFFIX}
+      container_name: capital_update_${NAME_SUFFIX}
       restart: on-failure
       environment:
         TZ: ${TZ}
@@ -182,7 +182,7 @@ services:
 
   cleaner:
       image: pysystemtrade
-      container_name: cleaner${NAME_SUFFIX}
+      container_name: cleaner_${NAME_SUFFIX}
       restart: on-failure
       environment:
         TZ: ${TZ}
@@ -204,7 +204,7 @@ services:
 
   daily_processes:
       image: pysystemtrade
-      container_name: daily_processes${NAME_SUFFIX}
+      container_name: daily_processes_${NAME_SUFFIX}
       environment:
         TZ: ${TZ}
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
@@ -248,12 +248,12 @@ services:
           PARQUET_STORE: ${PARQUET_STORE}
           MONGO_HOST: ${MONGO_HOST}
           MONGO_DB: ${MONGO_DB}
-      container_name: jupyter${NAME_SUFFIX}
+      container_name: jupyter_${NAME_SUFFIX}
       restart: always
       environment:
         TZ: ${TZ}
       ports:
-        - "8889:8888"
+        - "8890:8888"
       volumes:
         - ./reports:/home/reports
         - ./csv_backup:/home/csv_backup
@@ -275,7 +275,7 @@ services:
       depends_on:
         - stack_handler    # needed to avoid building same image twice
         - mongo_db
-      container_name: csv_backup${NAME_SUFFIX}
+      container_name: csv_backup_${NAME_SUFFIX}
       environment:
         TZ: ${TZ}
       networks:
@@ -291,7 +291,7 @@ services:
           max-file: "1"
 
   barchart_quotes:
-      container_name: barchart_quotes${NAME_SUFFIX}
+      container_name: barchart_quotes_${NAME_SUFFIX}
       profiles: ["quotes"]
       user: "99:100"
       image: makutaku/bc-utils:1.3.0
@@ -321,7 +321,7 @@ services:
           max-file: "3"
 
   yahoo_quotes:
-      container_name: yahoo_quotes${NAME_SUFFIX}
+      container_name: yahoo_quotes_${NAME_SUFFIX}
       profiles: ["quotes"]
       user: "99:100"
       image: makutaku/bc-utils:1.3.0
@@ -348,7 +348,7 @@ services:
           max-file: "3"
 
   ibkr_quotes:
-      container_name: ibkr_quotes${NAME_SUFFIX}
+      container_name: ibkr_quotes_${NAME_SUFFIX}
       profiles: ["quotes"]
       user: "99:100"
       image: makutaku/bc-utils:1.3.0
@@ -378,20 +378,25 @@ services:
 
 volumes:
   mongo_db:
-    name: mongo_db_volume${NAME_SUFFIX}
+    name: mongo_db_volume_${NAME_SUFFIX}
   mongo_conf:
-    name: mongo_conf_volume${NAME_SUFFIX}
+    name: mongo_conf_volume_${NAME_SUFFIX}
   gateway_jts:
-    name: gateway_jts_volume${NAME_SUFFIX}
+    name: gateway_jts_volume_${NAME_SUFFIX}
   parquet_store:
-    name: parquet_store_volume${NAME_SUFFIX}
+    name: parquet_store_volume_${NAME_SUFFIX}
+#  build_input:
+#    driver: local
+#    driver_opts:
+#      type: none
+#      device: /mnt/share
 
 networks:
   default:
     name: pysystemtrade
   channel:
     driver: bridge
-    name: pysystemtrade${NAME_SUFFIX}
+    name: pysystemtrade_${NAME_SUFFIX}
     ipam:
       config:
         - subnet: ${IPV4_NETWORK_PART}0.0/16
