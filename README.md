@@ -74,7 +74,7 @@ Table of Contents
 6) To create the containers without starting them, run the following:  
 `docker compose --env-file $PYSYSE_ENV_FILE create --force-recreate`
 7) Start jupyter container:  
-`docker compose --env-file $PYSYSE_ENV_FILE up jupyter`  
+`docker compose --env-file $PYSYSE_ENV_FILE up -d jupyter`  
  (this will also start the mongodb container, and the ib gateway)  
 8) Boostrap pysystemtrade:  
 The boostrap entails populating the databases, set total capital, set position limits, etc., 
@@ -258,6 +258,10 @@ To connect to the pysystemtrade container (or any other container for that matte
 
 To ensure only build image of a given service, e.g. stack_handler  
 `docker compose --env-file $PYSYSE_ENV_FILE build --no-cache --progress plain  stack_handler`
+
+
+Follow the logs  
+`docker compose --env-file $PYSYSE_ENV_FILE logs -f mongo_db`  
 
 
 ## Remarks
