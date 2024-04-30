@@ -100,5 +100,8 @@ RUN pip3 install -e .
 
 RUN mkdir command_scripts
 COPY ./command_scripts $PROJECT_DIR/$PYSYS_REPO/command_scripts
+# Change the permissions of all bash scripts to make them executable
+RUN find ./command_scripts -type f -name "*.bash" -exec chmod +x {} \;
+
 COPY run_monitor_once.py $PROJECT_DIR/$PYSYS_REPO/run_monitor_once.py
 
