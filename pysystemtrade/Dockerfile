@@ -52,7 +52,6 @@ ARG HELP_SCRIPTS_PATH=/usr/local/bin
 # Copy the scripts into the image
 COPY fetch_secret_as_vars.sh $HELP_SCRIPTS_PATH/fetch_secret_as_vars.sh
 COPY append_script.sh $HELP_SCRIPTS_PATH/append_script.sh
-COPY print_params.sh $HELP_SCRIPTS_PATH/print_params.sh
 
 ARG APPEND_SCRIPT="${HELP_SCRIPTS_PATH}/append_script.sh"
 ARG FETCH_SECRET_AS_VARS_SCRIPT="${HELP_SCRIPTS_PATH}/fetch_secret_as_vars.sh"
