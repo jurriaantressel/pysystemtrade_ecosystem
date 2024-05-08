@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   mongo_db:
-      container_name: mongo_db_${NAME_SUFFIX}
+      container_name: mongo_db${NAME_SUFFIX}
       image: mongo
       restart: on-failure
       volumes:
@@ -11,7 +11,7 @@ services:
         - mongo_conf:/data/configdb
       networks:
         channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.2
+          ipv4_address: ${MONGO_DB_IPV4_ADDRESS}
       logging:
         options:
           max-size: "5m"
@@ -19,7 +19,7 @@ services:
 
   db_backup:
       image: alpine
-      container_name: db_backup_${NAME_SUFFIX}
+      container_name: db_backup${NAME_SUFFIX}
       volumes:
         - mongo_db:/data/db
         - mongo_conf:/data/configdb
@@ -34,7 +34,7 @@ services:
   db_restore:
       image: alpine
       profiles: ["restore"]
-      container_name: db_restore_${NAME_SUFFIX}
+      container_name: db_restore${NAME_SUFFIX}
       volumes:
         - mongo_db:/data/db
         - mongo_conf:/data/configdb
@@ -47,18 +47,18 @@ services:
           max-file: "1"
 
   ib_gateway:
-      container_name: ib_gateway_${NAME_SUFFIX}
+      container_name: ib_gateway${NAME_SUFFIX}
       image: ghcr.io/extrange/ibkr:stable
       restart: always
       ports:
         - "6082:6080"
-        - "${IB_PORT}:8888"
+        - "${IB_GATEWAY_PORT}:8888"
       environment:
-        USERNAME: ${TWSUSERID}
-        PASSWORD: ${TWSPASSWORD}
-        GATEWAY_OR_TWS: tws #gateway
+        USERNAME: ${IBKR_USER_ID}
+        PASSWORD: ${IBKR_PASSWORD}
+        GATEWAY_OR_TWS: ${IB_GATEWAY_PLATFORM}
         TWOFA_TIMEOUT_ACTION: "restart"
-        IBC_TradingMode: ${TRADINGMODE}
+        IBC_TradingMode: ${IBKR_TRADINGMODE}
         IBC_ReadOnlyApi: no
         IBC_SecondFactorDevice: "IB Key"
         IBC_ReloginAfterSecondFactorAuthenticationTimeout: yes
@@ -73,7 +73,7 @@ services:
         - gateway_jts:/root/Jts
       networks:
         channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.3
+          ipv4_address: ${IB_GATEWAY_IPV4_ADDRESS}
       logging:
         options:
           max-size: "1m"
@@ -89,30 +89,29 @@ services:
         context: ./pysystemtrade
         dockerfile: ./Dockerfile
         args:
-          VAULT_ADDR: ${VAULT_ADDR}
-
           SYSTEM_REPO_NAME: ${SYSTEM_REPO_NAME}
-          SYSTEM_REPO_ACCESS: ${SYSTEM_REPO_ACCESS}
-
+          SYSTEM_REPO_OWNER: ${SYSTEM_REPO_OWNER}
+          SYSTEM_REPO_ACCESS_TOKEN: ${SYSTEM_REPO_ACCESS_TOKEN}
           CONFIG_REPO_NAME: ${CONFIG_REPO_NAME}
-          CONFIG_REPO_ACCESS: ${CONFIG_REPO_ACCESS}
-
-          REPORT_REPO_ACCESS: ${REPORT_REPO_ACCESS}
-
-          IB_ACCOUNT_ACCESS: ${IB_ACCOUNT_ACCESS}
-          IB_IP_ADDRESS: ${IB_IP_ADDRESS}
-          IB_PORT: ${IB_PORT}
-          IB_OFFSET: ${IB_OFFSET}
-
+          CONFIG_REPO_OWNER: ${CONFIG_REPO_OWNER}
+          CONFIG_REPO_ACCESS_TOKEN: ${CONFIG_REPO_ACCESS_TOKEN}
+          REPORT_REPO_NAME: ${REPORT_REPO_NAME}
+          REPORT_REPO_OWNER: ${REPORT_REPO_OWNER}
+          REPORT_REPO_ACCESS_TOKEN: ${REPORT_REPO_ACCESS_TOKEN}
+          IB_GATEWAY_IPV4_ADDRESS: ${IB_GATEWAY_IPV4_ADDRESS}
+          IB_GATEWAY_PORT: ${IB_GATEWAY_PORT}
+          IB_GATEWAY_OFFSET: ${IB_GATEWAY_OFFSET}
+          IBKR_ACCOUNT: ${IBKR_ACCOUNT}
           PARQUET_STORE: ${PARQUET_STORE}
-          MONGO_HOST: ${MONGO_HOST}
-          MONGO_DB: ${MONGO_DB}
-
-          EMAIL_ACCOUNT_ACCESS: ${EMAIL_ACCOUNT_ACCESS}
+          MONGO_DB_HOST: ${MONGO_DB_HOST}
+          MONGO_DB_DATABASE: ${MONGO_DB_DATABASE}
+          MONGO_DB_PORT: ${MONGO_DB_PORT}
+          EMAIL_USER_ID: ${EMAIL_USER_ID}
+          EMAIL_PASSWORD: ${EMAIL_PASSWORD}
           EMAIL_SERVER: ${EMAIL_SERVER}
           EMAIL_PORT: ${EMAIL_PORT}
           EMAIL_TO: ${EMAIL_TO}
-      container_name: stack_handler_${NAME_SUFFIX}
+      container_name: stack_handler${NAME_SUFFIX}
       restart: on-failure
       environment:
         TZ: ${TZ}
@@ -126,7 +125,7 @@ services:
         - parquet_store:$PARQUET_STORE
       networks:
         channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.4
+          ipv4_address: ${STACK_HANDLER_IPV4_ADDRESS}
       stdin_open: true
       tty: true
       init: true
@@ -137,7 +136,7 @@ services:
 
   price_updates:
       image: pysystemtrade
-      container_name: price_updates_${NAME_SUFFIX}
+      container_name: price_updates${NAME_SUFFIX}
       restart: on-failure
       environment:
         TZ: ${TZ}
@@ -150,7 +149,7 @@ services:
         - ./logs/price_updates:/home/logs
       networks:
         channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.5
+          ipv4_address: ${PRICE_UPDATES_IPV4_ADDRESS}
       stdin_open: true
       tty: true
       init: true
@@ -161,7 +160,7 @@ services:
 
   capital_update:
       image: pysystemtrade
-      container_name: capital_update_${NAME_SUFFIX}
+      container_name: capital_update${NAME_SUFFIX}
       restart: on-failure
       environment:
         TZ: ${TZ}
@@ -175,7 +174,7 @@ services:
         - ./logs/capital_update:/home/logs
       networks:
         channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.9
+          ipv4_address: ${CAPITAL_UPDATE_IPV4_ADDRESS}
       stdin_open: true
       tty: true
       init: true
@@ -186,7 +185,7 @@ services:
 
   cleaner:
       image: pysystemtrade
-      container_name: cleaner_${NAME_SUFFIX}
+      container_name: cleaner${NAME_SUFFIX}
       restart: on-failure
       environment:
         TZ: ${TZ}
@@ -197,7 +196,7 @@ services:
         - stack_handler    # needed to avoid building same image twice
       networks:
         channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.10
+          ipv4_address: ${CLEANER_IPV4_ADDRESS}
       stdin_open: true
       tty: true
       init: true
@@ -208,7 +207,7 @@ services:
 
   daily_processes:
       image: pysystemtrade
-      container_name: daily_processes_${NAME_SUFFIX}
+      container_name: daily_processes${NAME_SUFFIX}
       environment:
         TZ: ${TZ}
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
@@ -223,7 +222,7 @@ services:
         - ./logs/daily_processes:/home/logs
       networks:
         channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.8
+          ipv4_address: ${DAILY_PROCESSES_IPV4_ADDRESS}
       stdin_open: true
       tty: true
       init: true
@@ -238,13 +237,13 @@ services:
         context: jupyter
         dockerfile: ./Dockerfile
         args:
-          IB_IP_ADDRESS: ${IB_IP_ADDRESS}
-          IB_PORT: ${IB_PORT}
-          IB_OFFSET: ${IB_OFFSET}
+          IB_GATEWAY_IPV4_ADDRESS: ${IB_GATEWAY_IPV4_ADDRESS}
+          IB_GATEWAY_PORT: ${IB_GATEWAY_PORT}
+          IB_GATEWAY_OFFSET: ${IB_GATEWAY_OFFSET}
           PARQUET_STORE: ${PARQUET_STORE}
-          MONGO_HOST: ${MONGO_HOST}
-          MONGO_DB: ${MONGO_DB}
-      container_name: jupyter_${NAME_SUFFIX}
+          MONGO_DB_HOST: ${MONGO_DB_HOST}
+          MONGO_DB_DATABASE: ${MONGO_DB_DATABASE}
+      container_name: jupyter${NAME_SUFFIX}
       restart: always
       environment:
         TZ: ${TZ}
@@ -260,7 +259,7 @@ services:
         - mongo_db
       networks:
         channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.6
+          ipv4_address: ${JUPYTER_IPV4_ADDRESS}
       logging:
         options:
           max-size: "200k"
@@ -271,12 +270,12 @@ services:
       depends_on:
         - stack_handler    # needed to avoid building same image twice
         - mongo_db
-      container_name: csv_backup_${NAME_SUFFIX}
+      container_name: csv_backup${NAME_SUFFIX}
       environment:
         TZ: ${TZ}
       networks:
         channel:
-          ipv4_address: ${IPV4_NETWORK_PART}0.7
+          ipv4_address: ${CSV_BACKUP_IPV4_ADDRESS}
       volumes:
         - ./csv_backup:/home/csv_backup
       command: sh -c "cd sysproduction/linux/scripts; backup_arctic_to_csv"
@@ -287,7 +286,7 @@ services:
           max-file: "1"
 
   barchart_quotes:
-      container_name: barchart_quotes_${NAME_SUFFIX}
+      container_name: barchart_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
       user: "99:100"
       image: makutaku/bc-utils:1.3.0
@@ -317,7 +316,7 @@ services:
           max-file: "3"
 
   yahoo_quotes:
-      container_name: yahoo_quotes_${NAME_SUFFIX}
+      container_name: yahoo_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
       user: "99:100"
       image: makutaku/bc-utils:1.3.0
@@ -344,7 +343,7 @@ services:
           max-file: "3"
 
   ibkr_quotes:
-      container_name: ibkr_quotes_${NAME_SUFFIX}
+      container_name: ibkr_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
       user: "99:100"
       image: makutaku/bc-utils:1.3.0
@@ -374,13 +373,13 @@ services:
 
 volumes:
   mongo_db:
-    name: mongo_db_volume_${NAME_SUFFIX}
+    name: mongo_db_volume${NAME_SUFFIX}
   mongo_conf:
-    name: mongo_conf_volume_${NAME_SUFFIX}
+    name: mongo_conf_volume${NAME_SUFFIX}
   gateway_jts:
-    name: gateway_jts_volume_${NAME_SUFFIX}
+    name: gateway_jts_volume${NAME_SUFFIX}
   parquet_store:
-    name: parquet_store_volume_${NAME_SUFFIX}
+    name: parquet_store_volume${NAME_SUFFIX}
 #  build_input:
 #    driver: local
 #    driver_opts:
@@ -392,11 +391,11 @@ networks:
     name: pysystemtrade
   channel:
     driver: bridge
-    name: pysystemtrade_${NAME_SUFFIX}
+    name: pysystemtrade${NAME_SUFFIX}
     ipam:
       config:
         - subnet: ${IPV4_NETWORK_PART}0.0/16
-          gateway: ${IPV4_NETWORK_PART}0.1
+          gateway: ${GATEWAY_IPV4_ADDRESS}0.1
 
 
  # Backup concept; https://stackoverflow.com/a/56432886/1020693
