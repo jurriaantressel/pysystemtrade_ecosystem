@@ -1,13 +1,28 @@
 #!/bin/bash
 
-# Check if the correct number of arguments is provided
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <input_env_file> <output_env_file>" >&2
+# Check the number of arguments provided
+if [[ "$#" -lt 1 ]]; then
+    echo "Usage: $0 <input_env_file> [output_env_file]" >&2
     exit 1
 fi
 
 input_file="$1"
-output_file="$2"
+
+# Extract just the file name from the input path
+input_filename=$(basename "$input_file")
+
+# If only the input file is specified and the file name does not start with a dot, set the output file name
+if [[ "$#" -eq 1 ]]; then
+    if [[ "$input_filename" == .* ]]; then
+        echo "Error: Auto-generated hidden output filename not possible as input filename starts with '.'. Please specify both input and output filenames." >&2
+        exit 1
+    else
+        # Generate the output file path by prepending a dot to the file name in the same directory
+        output_file="$(dirname "$input_file")/.$input_filename"
+    fi
+else
+    output_file="$2"
+fi
 
 # Check if the input file exists
 if [ ! -f "$input_file" ]; then
