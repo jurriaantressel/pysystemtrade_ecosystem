@@ -73,13 +73,13 @@ ENV TZ=${TZ:-America/Chicago}
 
 RUN ln -sf /usr/share/zoneinfo/$TZ /etc/timezone && \
   ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
-  apt-get update && \
-  yes | apt-get install vim && \
-  pip3 install --upgrade pip && \
   mkdir /home/reports && \
   mkdir /home/logs && \
   mkdir /home/echos && \
-  mkdir /home/csv_backup
+  mkdir /home/csv_backup && \
+  apt-get update && \
+  yes | apt-get install vim && \
+  pip3 install --upgrade pip
 
 ARG SYSTEM_REPO_NAME=$SYSTEM_REPO_NAME
 ARG CONFIG_REPO_NAME=$CONFIG_REPO_NAME

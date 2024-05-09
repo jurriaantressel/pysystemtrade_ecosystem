@@ -5,12 +5,12 @@ services:
   mongo_db:
       container_name: mongo_db${NAME_SUFFIX}
       image: mongo
-      restart: on-failure
+      restart: no
       volumes:
         - mongo_db:/data/db
-        - mongo_conf:/data/configdb
+        - mongo_config:/data/configdb
       networks:
-        channel:
+        trading_net:
           ipv4_address: ${MONGO_DB_IPV4_ADDRESS}
       logging:
         options:
@@ -22,7 +22,7 @@ services:
       container_name: db_backup${NAME_SUFFIX}
       volumes:
         - mongo_db:/data/db
-        - mongo_conf:/data/configdb
+        - mongo_config:/data/configdb
         - ${DB_BACKUP_PATH}:/backup
       command: sh -c "tar -zcvf /backup/mongo.tar.gz /data/"
       init: true
@@ -37,7 +37,7 @@ services:
       container_name: db_restore${NAME_SUFFIX}
       volumes:
         - mongo_db:/data/db
-        - mongo_conf:/data/configdb
+        - mongo_config:/data/configdb
         - ${DB_BACKUP_PATH}:/backup
       command: sh -c "cd /data/ && tar -zxvf /backup/mongo.tar.gz --strip 1"
       init: true
@@ -49,7 +49,7 @@ services:
   ib_gateway:
       container_name: ib_gateway${NAME_SUFFIX}
       image: ghcr.io/extrange/ibkr:stable
-      restart: always
+      restart: no
       ports:
         - "6082:6080"
         - "${IB_GATEWAY_PORT}:8888"
@@ -72,7 +72,7 @@ services:
       volumes:
         - gateway_jts:/root/Jts
       networks:
-        channel:
+        trading_net:
           ipv4_address: ${IB_GATEWAY_IPV4_ADDRESS}
       logging:
         options:
@@ -112,7 +112,7 @@ services:
           EMAIL_PORT: ${EMAIL_PORT}
           EMAIL_TO: ${EMAIL_TO}
       container_name: stack_handler${NAME_SUFFIX}
-      restart: on-failure
+      restart: no
       environment:
         TZ: ${TZ}
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
@@ -124,7 +124,7 @@ services:
         - ./logs/stack_handler:/home/logs
         - parquet_store:$PARQUET_STORE
       networks:
-        channel:
+        trading_net:
           ipv4_address: ${STACK_HANDLER_IPV4_ADDRESS}
       stdin_open: true
       tty: true
@@ -137,7 +137,7 @@ services:
   price_updates:
       image: pysystemtrade
       container_name: price_updates${NAME_SUFFIX}
-      restart: on-failure
+      restart: no
       environment:
         TZ: ${TZ}
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
@@ -148,7 +148,7 @@ services:
       volumes:
         - ./logs/price_updates:/home/logs
       networks:
-        channel:
+        trading_net:
           ipv4_address: ${PRICE_UPDATES_IPV4_ADDRESS}
       stdin_open: true
       tty: true
@@ -161,7 +161,7 @@ services:
   capital_update:
       image: pysystemtrade
       container_name: capital_update${NAME_SUFFIX}
-      restart: on-failure
+      restart: no
       environment:
         TZ: ${TZ}
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
@@ -169,11 +169,10 @@ services:
       depends_on:
         - ib_gateway
         - mongo_db
-        - stack_handler    # needed to avoid building same image twice
       volumes:
         - ./logs/capital_update:/home/logs
       networks:
-        channel:
+        trading_net:
           ipv4_address: ${CAPITAL_UPDATE_IPV4_ADDRESS}
       stdin_open: true
       tty: true
@@ -186,16 +185,15 @@ services:
   cleaner:
       image: pysystemtrade
       container_name: cleaner${NAME_SUFFIX}
-      restart: on-failure
+      restart: no
       environment:
         TZ: ${TZ}
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/cleaner_commands.bash"]
       depends_on:
         - mongo_db
-        - stack_handler    # needed to avoid building same image twice
       networks:
-        channel:
+        trading_net:
           ipv4_address: ${CLEANER_IPV4_ADDRESS}
       stdin_open: true
       tty: true
@@ -215,13 +213,12 @@ services:
       depends_on:
         - ib_gateway
         - mongo_db
-        - stack_handler    # needed to avoid building same image twice
       volumes:
         - ./reports:/home/reports
         - ./backtests:/home/backtests
         - ./logs/daily_processes:/home/logs
       networks:
-        channel:
+        trading_net:
           ipv4_address: ${DAILY_PROCESSES_IPV4_ADDRESS}
       stdin_open: true
       tty: true
@@ -237,14 +234,30 @@ services:
         context: jupyter
         dockerfile: ./Dockerfile
         args:
+          SYSTEM_REPO_NAME: ${SYSTEM_REPO_NAME}
+          SYSTEM_REPO_OWNER: ${SYSTEM_REPO_OWNER}
+          SYSTEM_REPO_ACCESS_TOKEN: ${SYSTEM_REPO_ACCESS_TOKEN}
+          CONFIG_REPO_NAME: ${CONFIG_REPO_NAME}
+          CONFIG_REPO_OWNER: ${CONFIG_REPO_OWNER}
+          CONFIG_REPO_ACCESS_TOKEN: ${CONFIG_REPO_ACCESS_TOKEN}
+          REPORT_REPO_NAME: ${REPORT_REPO_NAME}
+          REPORT_REPO_OWNER: ${REPORT_REPO_OWNER}
+          REPORT_REPO_ACCESS_TOKEN: ${REPORT_REPO_ACCESS_TOKEN}
           IB_GATEWAY_IPV4_ADDRESS: ${IB_GATEWAY_IPV4_ADDRESS}
           IB_GATEWAY_PORT: ${IB_GATEWAY_PORT}
           IB_GATEWAY_OFFSET: ${IB_GATEWAY_OFFSET}
+          IBKR_ACCOUNT: ${IBKR_ACCOUNT}
           PARQUET_STORE: ${PARQUET_STORE}
           MONGO_DB_HOST: ${MONGO_DB_HOST}
           MONGO_DB_DATABASE: ${MONGO_DB_DATABASE}
+          MONGO_DB_PORT: ${MONGO_DB_PORT}
+          EMAIL_USER_ID: ${EMAIL_USER_ID}
+          EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+          EMAIL_SERVER: ${EMAIL_SERVER}
+          EMAIL_PORT: ${EMAIL_PORT}
+          EMAIL_TO: ${EMAIL_TO}
       container_name: jupyter${NAME_SUFFIX}
-      restart: always
+      restart: no
       environment:
         TZ: ${TZ}
       ports:
@@ -258,7 +271,7 @@ services:
         - ib_gateway
         - mongo_db
       networks:
-        channel:
+        trading_net:
           ipv4_address: ${JUPYTER_IPV4_ADDRESS}
       logging:
         options:
@@ -268,13 +281,12 @@ services:
   csv_backup:
       image: pysystemtrade
       depends_on:
-        - stack_handler    # needed to avoid building same image twice
         - mongo_db
       container_name: csv_backup${NAME_SUFFIX}
       environment:
         TZ: ${TZ}
       networks:
-        channel:
+        trading_net:
           ipv4_address: ${CSV_BACKUP_IPV4_ADDRESS}
       volumes:
         - ./csv_backup:/home/csv_backup
@@ -290,26 +302,26 @@ services:
       profiles: ["quotes"]
       user: "99:100"
       image: makutaku/bc-utils:1.3.0
-      restart: on-failure
+      restart: no
       volumes:
         - ${MARKET_DATA_PATH}/barchart/:/bc-utils/data
       network_mode: bridge
       environment:
         TZ: ${TZ}
-        BARCHART_DOWNLOADER_FACTORY: create_barchart_downloader
+        BARCHART_DOWNLOADER_FACTORY: "create_barchart_downloader"
         BARCHART_USERNAME: ${BARCHART_USERNAME}
         BARCHART_PASSWORD: ${BARCHART_PASSWORD}
-        BARCHART_DRY_RUN: False
-        BARCHART_START_YEAR: 2000
-        BARCHART_END_YEAR: 2025
-        BARCHART_OUTPUT_DIR: /bc-utils/data
-        BARCHART_DAILY_DOWNLOAD_LIMIT: 230
-        BARCHART_RANDOM_SLEEP_IN_SEC: 7
-        BARCHART_MARKET_FILES: /bc-utils/data/barchart.config.json
-        BARCHART_LOGGING_LEVEL: info
-        RUN_ON_STARTUP: True
-        BARCHART_BACKUP_DATA: True
-        BARCHART_FORCE_BACKUP: False
+        BARCHART_DRY_RUN: "True"
+        BARCHART_START_YEAR: "2000"
+        BARCHART_END_YEAR: "2025"
+        BARCHART_OUTPUT_DIR: "/bc-utils/data"
+        BARCHART_DAILY_DOWNLOAD_LIMIT: 100
+        BARCHART_RANDOM_SLEEP_IN_SEC: 10
+        BARCHART_MARKET_FILES: "/bc-utils/data/barchart.config.json"
+        BARCHART_LOGGING_LEVEL: "info"
+        RUN_ON_STARTUP: "True"
+        BARCHART_BACKUP_DATA: "True"
+        BARCHART_FORCE_BACKUP: "False"
       logging:
         options:
           max-size: "5m"
@@ -320,7 +332,7 @@ services:
       profiles: ["quotes"]
       user: "99:100"
       image: makutaku/bc-utils:1.3.0
-      restart: on-failure
+      restart: no
       volumes:
         - ${MARKET_DATA_PATH}/yahoo/:/bc-utils/data
       network_mode: bridge
@@ -347,7 +359,7 @@ services:
       profiles: ["quotes"]
       user: "99:100"
       image: makutaku/bc-utils:1.3.0
-      restart: on-failure
+      restart: no
       depends_on:
         - ib_gateway
       volumes:
@@ -355,17 +367,17 @@ services:
       network_mode: bridge
       environment:
         TZ: ${TZ}
-        BARCHART_DOWNLOADER_FACTORY: create_ibkr_downloader
-        BARCHART_DRY_RUN: False
-        BARCHART_START_YEAR: 2000
-        BARCHART_END_YEAR: 2025
-        BARCHART_OUTPUT_DIR: /bc-utils/data
-        BARCHART_RANDOM_SLEEP_IN_SEC: 1
-        BARCHART_MARKET_FILES: /bc-utils/data/ibkr.config.json
-        BARCHART_LOGGING_LEVEL: info
-        RUN_ON_STARTUP: True
-        BARCHART_BACKUP_DATA: True
-        BARCHART_FORCE_BACKUP: False
+        BARCHART_DOWNLOADER_FACTORY: "create_ibkr_downloader"
+        BARCHART_DRY_RUN: "False"
+        BARCHART_START_YEAR: "2000"
+        BARCHART_END_YEAR: "2025"
+        BARCHART_OUTPUT_DIR: "/bc-utils/data"
+        BARCHART_RANDOM_SLEEP_IN_SEC: 10
+        BARCHART_MARKET_FILES: "/bc-utils/data/ibkr.config.json"
+        BARCHART_LOGGING_LEVEL: "info"
+        RUN_ON_STARTUP: "True"
+        BARCHART_BACKUP_DATA: "True"
+        BARCHART_FORCE_BACKUP: "False"
       logging:
         options:
           max-size: "5m"
@@ -374,8 +386,8 @@ services:
 volumes:
   mongo_db:
     name: mongo_db_volume${NAME_SUFFIX}
-  mongo_conf:
-    name: mongo_conf_volume${NAME_SUFFIX}
+  mongo_config:
+    name: mongo_config_volume${NAME_SUFFIX}
   gateway_jts:
     name: gateway_jts_volume${NAME_SUFFIX}
   parquet_store:
@@ -388,14 +400,14 @@ volumes:
 
 networks:
   default:
-    name: pysystemtrade
-  channel:
+    name: shared_net${NAME_SUFFIX}
+  trading_net:
     driver: bridge
-    name: pysystemtrade${NAME_SUFFIX}
+    name: trading_net${NAME_SUFFIX}
     ipam:
       config:
         - subnet: ${IPV4_NETWORK_PART}0.0/16
-          gateway: ${GATEWAY_IPV4_ADDRESS}0.1
+          gateway: ${GATEWAY_IPV4_ADDRESS}
 
 
  # Backup concept; https://stackoverflow.com/a/56432886/1020693
