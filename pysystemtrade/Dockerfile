@@ -12,9 +12,6 @@ RUN apt-get update \
     && apt-get install -y gettext \
     && rm -rf /var/lib/apt/lists/*
 
-
-# Set build arguments
-
 ARG PROJECT_DIR=/opt/projects
 RUN mkdir $PROJECT_DIR
 
