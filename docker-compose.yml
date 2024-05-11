@@ -338,6 +338,38 @@ services:
           max-size: "100k"
           max-file: "1"
 
+  yahoo_quotes:
+      container_name: yahoo_quotes${NAME_SUFFIX}
+      profiles: ["quotes"]
+      user: "$BC_UTILS_USER"
+      image: bc-utils
+      pull_policy: never
+      restart: no
+      volumes:
+        - ${YAHOO_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
+      networks:
+        trading_net:
+          ipv4_address: ${YAHOO_QUOTES_IPV4_ADDRESS}
+      depends_on:
+        - builder_quotes
+      environment:
+        TZ: ${TZ}
+        BARCHART_DOWNLOADER_FACTORY: "create_yahoo_downloader"
+        BARCHART_DRY_RUN: "False"
+        BARCHART_START_YEAR: "2000"
+        BARCHART_END_YEAR: "2025"
+        BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
+        BARCHART_RANDOM_SLEEP_IN_SEC: 1
+        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/yahoo.config.json"
+        BARCHART_LOGGING_LEVEL: "DEBUG"
+        RUN_ON_STARTUP: "True"
+        BARCHART_BACKUP_DATA: "True"
+        BARCHART_FORCE_BACKUP: "False"
+      logging:
+        options:
+          max-size: "5m"
+          max-file: "3"
+
   barchart_quotes:
       container_name: barchart_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
@@ -364,38 +396,6 @@ services:
         BARCHART_DAILY_DOWNLOAD_LIMIT: 200
         BARCHART_RANDOM_SLEEP_IN_SEC: 10
         BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/barchart.config.json"
-        BARCHART_LOGGING_LEVEL: "DEBUG"
-        RUN_ON_STARTUP: "True"
-        BARCHART_BACKUP_DATA: "True"
-        BARCHART_FORCE_BACKUP: "False"
-      logging:
-        options:
-          max-size: "5m"
-          max-file: "3"
-
-  yahoo_quotes:
-      container_name: yahoo_quotes${NAME_SUFFIX}
-      profiles: ["quotes"]
-      user: "$BC_UTILS_USER"
-      image: bc-utils
-      pull_policy: never
-      restart: no
-      volumes:
-        - ${YAHOO_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
-      networks:
-        trading_net:
-          ipv4_address: ${YAHOO_QUOTES_IPV4_ADDRESS}
-      depends_on:
-        - builder_quotes
-      environment:
-        TZ: ${TZ}
-        BARCHART_DOWNLOADER_FACTORY: "create_yahoo_downloader"
-        BARCHART_DRY_RUN: "False"
-        BARCHART_START_YEAR: "2000"
-        BARCHART_END_YEAR: "2025"
-        BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
-        BARCHART_RANDOM_SLEEP_IN_SEC: 1
-        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/yahoo.config.json"
         BARCHART_LOGGING_LEVEL: "DEBUG"
         RUN_ON_STARTUP: "True"
         BARCHART_BACKUP_DATA: "True"
