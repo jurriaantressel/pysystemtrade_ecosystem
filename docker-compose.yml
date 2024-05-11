@@ -81,6 +81,57 @@ services:
           soft: 10000
           hard: 10000
 
+
+  jupyter:
+      image: pysystemtrade_jupyter
+      build:
+        context: jupyter
+        dockerfile: ./Dockerfile
+        args:
+          SYSTEM_REPO_NAME: ${SYSTEM_REPO_NAME}
+          SYSTEM_REPO_OWNER: ${SYSTEM_REPO_OWNER}
+          SYSTEM_REPO_ACCESS_TOKEN: ${SYSTEM_REPO_ACCESS_TOKEN}
+          CONFIG_REPO_NAME: ${CONFIG_REPO_NAME}
+          CONFIG_REPO_OWNER: ${CONFIG_REPO_OWNER}
+          CONFIG_REPO_ACCESS_TOKEN: ${CONFIG_REPO_ACCESS_TOKEN}
+          REPORT_REPO_NAME: ${REPORT_REPO_NAME}
+          REPORT_REPO_OWNER: ${REPORT_REPO_OWNER}
+          REPORT_REPO_ACCESS_TOKEN: ${REPORT_REPO_ACCESS_TOKEN}
+          IB_GATEWAY_IPV4_ADDRESS: ${IB_GATEWAY_IPV4_ADDRESS}
+          IB_GATEWAY_PORT: ${IB_GATEWAY_PORT}
+          IB_GATEWAY_OFFSET: ${IB_GATEWAY_OFFSET}
+          IBKR_ACCOUNT: ${IBKR_ACCOUNT}
+          PARQUET_STORE: ${PARQUET_STORE}
+          MONGO_DB_HOST: ${MONGO_DB_HOST}
+          MONGO_DB_DATABASE: ${MONGO_DB_DATABASE}
+          MONGO_DB_PORT: ${MONGO_DB_PORT}
+          EMAIL_USER_ID: ${EMAIL_USER_ID}
+          EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+          EMAIL_SERVER: ${EMAIL_SERVER}
+          EMAIL_PORT: ${EMAIL_PORT}
+          EMAIL_TO: ${EMAIL_TO}
+      container_name: jupyter${NAME_SUFFIX}
+      restart: no
+      environment:
+        TZ: ${TZ}
+      ports:
+        - "8890:8888"
+      volumes:
+        - ./reports:/home/reports
+        - ./csv_backup:/home/csv_backup
+        - ./backtests:/home/backtests
+        - ./logs/jupyter:/home/logs
+      depends_on:
+        - ib_gateway
+        - mongo_db
+      networks:
+        trading_net:
+          ipv4_address: ${JUPYTER_IPV4_ADDRESS}
+      logging:
+        options:
+          max-size: "200k"
+          max-file: "1"
+
   builder_handler:
       container_name: builder_handler${NAME_SUFFIX}
       image: pysystemtrade
@@ -194,28 +245,6 @@ services:
           max-size: "10m"
           max-file: "3"
 
-  cleaner:
-      image: pysystemtrade
-      container_name: cleaner${NAME_SUFFIX}
-      restart: no
-      environment:
-        TZ: ${TZ}
-        IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
-      command: ["/bin/bash", "-c", "command_scripts/cleaner_commands.bash"]
-      depends_on:
-        - builder_handler
-        - mongo_db
-      networks:
-        trading_net:
-          ipv4_address: ${CLEANER_IPV4_ADDRESS}
-      stdin_open: true
-      tty: true
-      init: true
-      logging:
-        options:
-          max-size: "200k"
-          max-file: "1"
-
   daily_processes:
       image: pysystemtrade
       container_name: daily_processes${NAME_SUFFIX}
@@ -242,56 +271,6 @@ services:
           max-size: "10m"
           max-file: "3"
 
-  jupyter:
-      image: pysystemtrade_jupyter
-      build:
-        context: jupyter
-        dockerfile: ./Dockerfile
-        args:
-          SYSTEM_REPO_NAME: ${SYSTEM_REPO_NAME}
-          SYSTEM_REPO_OWNER: ${SYSTEM_REPO_OWNER}
-          SYSTEM_REPO_ACCESS_TOKEN: ${SYSTEM_REPO_ACCESS_TOKEN}
-          CONFIG_REPO_NAME: ${CONFIG_REPO_NAME}
-          CONFIG_REPO_OWNER: ${CONFIG_REPO_OWNER}
-          CONFIG_REPO_ACCESS_TOKEN: ${CONFIG_REPO_ACCESS_TOKEN}
-          REPORT_REPO_NAME: ${REPORT_REPO_NAME}
-          REPORT_REPO_OWNER: ${REPORT_REPO_OWNER}
-          REPORT_REPO_ACCESS_TOKEN: ${REPORT_REPO_ACCESS_TOKEN}
-          IB_GATEWAY_IPV4_ADDRESS: ${IB_GATEWAY_IPV4_ADDRESS}
-          IB_GATEWAY_PORT: ${IB_GATEWAY_PORT}
-          IB_GATEWAY_OFFSET: ${IB_GATEWAY_OFFSET}
-          IBKR_ACCOUNT: ${IBKR_ACCOUNT}
-          PARQUET_STORE: ${PARQUET_STORE}
-          MONGO_DB_HOST: ${MONGO_DB_HOST}
-          MONGO_DB_DATABASE: ${MONGO_DB_DATABASE}
-          MONGO_DB_PORT: ${MONGO_DB_PORT}
-          EMAIL_USER_ID: ${EMAIL_USER_ID}
-          EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-          EMAIL_SERVER: ${EMAIL_SERVER}
-          EMAIL_PORT: ${EMAIL_PORT}
-          EMAIL_TO: ${EMAIL_TO}
-      container_name: jupyter${NAME_SUFFIX}
-      restart: no
-      environment:
-        TZ: ${TZ}
-      ports:
-        - "8890:8888"
-      volumes:
-        - ./reports:/home/reports
-        - ./csv_backup:/home/csv_backup
-        - ./backtests:/home/backtests
-        - ./logs/jupyter:/home/logs
-      depends_on:
-        - ib_gateway
-        - mongo_db
-      networks:
-        trading_net:
-          ipv4_address: ${JUPYTER_IPV4_ADDRESS}
-      logging:
-        options:
-          max-size: "200k"
-          max-file: "1"
-
   csv_backup:
       image: pysystemtrade
       depends_on:
@@ -306,6 +285,28 @@ services:
       volumes:
         - ./csv_backup:/home/csv_backup
       command: sh -c "cd sysproduction/linux/scripts; backup_arctic_to_csv"
+      init: true
+      logging:
+        options:
+          max-size: "200k"
+          max-file: "1"
+
+  cleaner:
+      image: pysystemtrade
+      container_name: cleaner${NAME_SUFFIX}
+      restart: no
+      environment:
+        TZ: ${TZ}
+        IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
+      command: ["/bin/bash", "-c", "command_scripts/cleaner_commands.bash"]
+      depends_on:
+        - builder_handler
+        - mongo_db
+      networks:
+        trading_net:
+          ipv4_address: ${CLEANER_IPV4_ADDRESS}
+      stdin_open: true
+      tty: true
       init: true
       logging:
         options:
