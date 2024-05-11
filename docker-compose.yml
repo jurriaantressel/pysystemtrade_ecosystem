@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
 
   mongo_db:
@@ -301,10 +299,23 @@ services:
       container_name: barchart_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
       user: "99:100"
-      image: makutaku/bc-utils:1.3.0
       restart: no
+      image: bc-utils
+      build:
+        context: ./bc_utils
+        dockerfile: ./Dockerfile
+        args:
+          ENVIRONMENT: ${ENVIRONMENT}
+          BC_UTILS_REPO_NAME: ${BC_UTILS_REPO_NAME}
+          BC_UTILS_REPO_OWNER: ${BC_UTILS_REPO_OWNER}
+          BC_UTILS_REPO_ACCESS_TOKEN: ${BC_UTILS_REPO_ACCESS_TOKEN}
+          BC_UTILS_REPO_DIR: ${BC_UTILS_REPO_DIR}
+          CONFIG_REPO_NAME: ${CONFIG_REPO_NAME}
+          CONFIG_REPO_OWNER: ${CONFIG_REPO_OWNER}
+          CONFIG_REPO_ACCESS_TOKEN: ${CONFIG_REPO_ACCESS_TOKEN}
+          CONFIG_REPO_DIR: ${CONFIG_REPO_DIR}
       volumes:
-        - ${MARKET_DATA_PATH}/barchart/:/bc-utils/data
+        - ${BARCHART_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
       network_mode: bridge
       environment:
         TZ: ${TZ}
@@ -314,11 +325,11 @@ services:
         BARCHART_DRY_RUN: "True"
         BARCHART_START_YEAR: "2000"
         BARCHART_END_YEAR: "2025"
-        BARCHART_OUTPUT_DIR: "/bc-utils/data"
-        BARCHART_DAILY_DOWNLOAD_LIMIT: 100
+        BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
+        BARCHART_DAILY_DOWNLOAD_LIMIT: 200
         BARCHART_RANDOM_SLEEP_IN_SEC: 10
-        BARCHART_MARKET_FILES: "/bc-utils/data/barchart.config.json"
-        BARCHART_LOGGING_LEVEL: "info"
+        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/barchart.config.json"
+        BARCHART_LOGGING_LEVEL: "DEBUG"
         RUN_ON_STARTUP: "True"
         BARCHART_BACKUP_DATA: "True"
         BARCHART_FORCE_BACKUP: "False"
@@ -331,10 +342,10 @@ services:
       container_name: yahoo_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
       user: "99:100"
-      image: makutaku/bc-utils:1.3.0
+      image: bc-utils
       restart: no
       volumes:
-        - ${MARKET_DATA_PATH}/yahoo/:/bc-utils/data
+        - ${YAHOO_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
       network_mode: bridge
       environment:
         TZ: ${TZ}
@@ -342,10 +353,10 @@ services:
         BARCHART_DRY_RUN: "False"
         BARCHART_START_YEAR: "2000"
         BARCHART_END_YEAR: "2025"
-        BARCHART_OUTPUT_DIR: "/bc-utils/data"
+        BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
         BARCHART_RANDOM_SLEEP_IN_SEC: 1
-        BARCHART_MARKET_FILES: "/bc-utils/data/yahoo.config.json"
-        BARCHART_LOGGING_LEVEL: "info"
+        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/yahoo.config.json"
+        BARCHART_LOGGING_LEVEL: "DEBUG"
         RUN_ON_STARTUP: "True"
         BARCHART_BACKUP_DATA: "True"
         BARCHART_FORCE_BACKUP: "False"
@@ -358,12 +369,12 @@ services:
       container_name: ibkr_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
       user: "99:100"
-      image: makutaku/bc-utils:1.3.0
+      image: bc-utils
       restart: no
       depends_on:
         - ib_gateway
       volumes:
-        - ${MARKET_DATA_PATH}/ibkr/:/bc-utils/data
+        - ${IBKR_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
       network_mode: bridge
       environment:
         TZ: ${TZ}
@@ -371,10 +382,10 @@ services:
         BARCHART_DRY_RUN: "False"
         BARCHART_START_YEAR: "2000"
         BARCHART_END_YEAR: "2025"
-        BARCHART_OUTPUT_DIR: "/bc-utils/data"
+        BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
         BARCHART_RANDOM_SLEEP_IN_SEC: 10
-        BARCHART_MARKET_FILES: "/bc-utils/data/ibkr.config.json"
-        BARCHART_LOGGING_LEVEL: "info"
+        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/ibkr.config.json"
+        BARCHART_LOGGING_LEVEL: "DEBUG"
         RUN_ON_STARTUP: "True"
         BARCHART_BACKUP_DATA: "True"
         BARCHART_FORCE_BACKUP: "False"
