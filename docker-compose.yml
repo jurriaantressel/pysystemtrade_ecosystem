@@ -56,16 +56,16 @@ services:
         PASSWORD: ${IBKR_PASSWORD}
         GATEWAY_OR_TWS: ${IB_GATEWAY_PLATFORM}
         TWOFA_TIMEOUT_ACTION: "restart"
-        IBC_TradingMode: ${IBKR_TRADINGMODE}
+        IBC_TradingMode: ${IBC_TRADING_MODE}
         IBC_ReadOnlyApi: no
         IBC_SecondFactorDevice: "IB Key"
         IBC_ReloginAfterSecondFactorAuthenticationTimeout: yes
         IBC_AcceptNonBrokerageAccountWarning: yes
         IBC_LogStructureScope: known
         IBC_LogStructureWhen: openclose
-        IBC_ExistingSessionDetectedAction: primary
-        IBC_AutoRestartTime: "06:00 PM"
-        IBC_AcceptIncomingConnectionAction: "reject"
+        IBC_ExistingSessionDetectedAction: ${IBC_EXISTING_SESSION_DETECTED_ACTION}
+        IBC_AutoRestartTime: ${IBC_AUTO_RESTART_TIME}
+        IBC_AcceptIncomingConnectionAction: ${IBC_ACCEPT_INCOMING_CONNECTION_ACTION}
         IBC_ConfirmCryptoCurrencyOrders: transmit
       volumes:
         - gateway_jts:/root/Jts
@@ -81,8 +81,10 @@ services:
           soft: 10000
           hard: 10000
 
-  stack_handler:
+  builder_handler:
+      container_name: builder_handler${NAME_SUFFIX}
       image: pysystemtrade
+      pull_policy: never
       build:
         context: ./pysystemtrade
         dockerfile: ./Dockerfile
@@ -109,6 +111,15 @@ services:
           EMAIL_SERVER: ${EMAIL_SERVER}
           EMAIL_PORT: ${EMAIL_PORT}
           EMAIL_TO: ${EMAIL_TO}
+      restart: no
+      entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
+      logging:
+        options:
+          max-size: "100k"
+          max-file: "1"
+
+  stack_handler:
+      image: pysystemtrade
       container_name: stack_handler${NAME_SUFFIX}
       restart: no
       environment:
@@ -116,6 +127,7 @@ services:
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/stack_handler_commands.bash"]
       depends_on:
+        - builder_handler
         - ib_gateway
         - mongo_db
       volumes:
@@ -141,6 +153,7 @@ services:
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/daily_prices_updates_commands.bash"]
       depends_on:
+        - builder_handler
         - ib_gateway
         - mongo_db
       volumes:
@@ -165,6 +178,7 @@ services:
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/capital_update_commands.bash"]
       depends_on:
+        - builder_handler
         - ib_gateway
         - mongo_db
       volumes:
@@ -189,6 +203,7 @@ services:
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/cleaner_commands.bash"]
       depends_on:
+        - builder_handler
         - mongo_db
       networks:
         trading_net:
@@ -209,6 +224,7 @@ services:
         IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/daily_processes_commands.bash"]
       depends_on:
+        - builder_handler
         - ib_gateway
         - mongo_db
       volumes:
@@ -279,6 +295,7 @@ services:
   csv_backup:
       image: pysystemtrade
       depends_on:
+        - builder_handler
         - mongo_db
       container_name: csv_backup${NAME_SUFFIX}
       environment:
@@ -295,12 +312,11 @@ services:
           max-size: "200k"
           max-file: "1"
 
-  barchart_quotes:
-      container_name: barchart_quotes${NAME_SUFFIX}
+  builder_quotes:
+      container_name: builder_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
-      user: "99:100"
-      restart: no
       image: bc-utils
+      pull_policy: never
       build:
         context: ./bc_utils
         dockerfile: ./Dockerfile
@@ -314,9 +330,27 @@ services:
           CONFIG_REPO_OWNER: ${CONFIG_REPO_OWNER}
           CONFIG_REPO_ACCESS_TOKEN: ${CONFIG_REPO_ACCESS_TOKEN}
           CONFIG_REPO_DIR: ${CONFIG_REPO_DIR}
+      restart: no
+      entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
+      logging:
+        options:
+          max-size: "100k"
+          max-file: "1"
+
+  barchart_quotes:
+      container_name: barchart_quotes${NAME_SUFFIX}
+      profiles: ["quotes"]
+      user: "$BC_UTILS_USER"
+      restart: no
+      image: bc-utils
+      pull_policy: never
       volumes:
         - ${BARCHART_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
-      network_mode: bridge
+      networks:
+        trading_net:
+          ipv4_address: ${BARCHART_QUOTES_IPV4_ADDRESS}
+      depends_on:
+        - builder_quotes
       environment:
         TZ: ${TZ}
         BARCHART_DOWNLOADER_FACTORY: "create_barchart_downloader"
@@ -341,12 +375,17 @@ services:
   yahoo_quotes:
       container_name: yahoo_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
-      user: "99:100"
+      user: "$BC_UTILS_USER"
       image: bc-utils
+      pull_policy: never
       restart: no
       volumes:
         - ${YAHOO_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
-      network_mode: bridge
+      networks:
+        trading_net:
+          ipv4_address: ${YAHOO_QUOTES_IPV4_ADDRESS}
+      depends_on:
+        - builder_quotes
       environment:
         TZ: ${TZ}
         BARCHART_DOWNLOADER_FACTORY: "create_yahoo_downloader"
@@ -368,14 +407,18 @@ services:
   ibkr_quotes:
       container_name: ibkr_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
-      user: "99:100"
+      user: "$BC_UTILS_USER"
       image: bc-utils
+      pull_policy: never
       restart: no
       depends_on:
+        - builder_quotes
         - ib_gateway
       volumes:
         - ${IBKR_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
-      network_mode: bridge
+      networks:
+        trading_net:
+          ipv4_address: ${IBKR_QUOTES_IPV4_ADDRESS}
       environment:
         TZ: ${TZ}
         BARCHART_DOWNLOADER_FACTORY: "create_ibkr_downloader"
@@ -389,6 +432,8 @@ services:
         RUN_ON_STARTUP: "True"
         BARCHART_BACKUP_DATA: "True"
         BARCHART_FORCE_BACKUP: "False"
+        PROVIDER_HOST: ${IB_GATEWAY_IPV4_ADDRESS}
+        PROVIDER_PORT: ${IB_GATEWAY_PORT}
       logging:
         options:
           max-size: "5m"
