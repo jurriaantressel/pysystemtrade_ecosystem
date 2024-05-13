@@ -29,31 +29,76 @@ elif [ -z "$ENV" ]; then
   exit 1
 fi
 
+create_link() {
+  local target_file="$1"
+  local link_name="$2"
+  local target_dir="$3"
+
+  # Check if a local .env file exists
+  if [ -f "$link_name" ]; then
+    if [ -L "$link_name" ]; then
+      # If .env is a soft link, delete the link
+      rm -f "$link_name"
+    else
+      # If .env is not a soft link, move it to .env.old, overwriting if .env.old already exists
+      mv -f "$link_name" "$link_name".old
+    fi
+  fi
+  # Attempt to link the local .env file to the target
+  # Extract the directory path
+  local path=$(dirname "$link_name")
+  mkdir -p "$path"
+  ln -s "$target_file" "$link_name"
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to link $link_name to $target_file"
+    exit 1
+  else
+    echo "Linked $link_name to $target_file"
+  fi
+}
+
+copy_file() {
+  local source_file="$1"
+  local destination_file="$2"
+  local destination_dir="$3"
+
+  # Check if a local destination file exists
+  if [ -f "$destination_file" ]; then
+    if [ -L "$destination_file" ]; then
+      # If it is a soft link, delete the link
+      echo "Removing existing symlink: $destination_file"
+      rm -f "$destination_file"
+    else
+      # If it is not a soft link, move it to .old, overwriting if .old already exists
+      echo "Moving existing file to $destination_file.old"
+      mv -f "$destination_file" "$destination_file.old"
+    fi
+  fi
+
+  # Ensure the directory for the destination file exists
+  local path=$(dirname "$destination_file")
+  mkdir -p "$path"
+
+  # Copy the source file to the destination
+  cp "$source_file" "$destination_file"
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to copy $source_file to $destination_file"
+    exit 1
+  else
+    echo "Copied $source_file to $destination_file"
+  fi
+}
+
+
 # Define the path for the target environment file
 TARGET_ENV_FILE="../pysystemtrade_config/build/env_files/$ENV.env"
+TARGET_PRIVATE_FILE="../pysystemtrade_config/build/pysystemtrade/$ENV.private_config.yaml"
 PROJECT_DIR="../pysystemtrade_config"
 
 # Check if the target .env file exists
-if [ -f "$TARGET_ENV_FILE" ]; then
-# Check if a local .env file exists
-if [ -f ".env" ]; then
-  if [ -L ".env" ]; then
-    # If .env is a soft link, delete the link
-    rm -f .env
-  else
-    # If .env is not a soft link, move it to .env.old, overwriting if .env.old already exists
-    mv -f .env .env.old
-  fi
-fi
-
-  # Attempt to link the local .env file to the target
-  ln -s "$TARGET_ENV_FILE" .env
-  if [ $? -ne 0 ]; then
-    echo "Error: Failed to link .env to $TARGET_ENV_FILE"
-    exit 1
-  else
-    echo "Linked .env to $TARGET_ENV_FILE"
-  fi
+if [[ -f $TARGET_ENV_FILE && -f $TARGET_PRIVATE_FILE ]]; then
+  create_link "$TARGET_ENV_FILE" ".env" "."
+  copy_file "$TARGET_PRIVATE_FILE" "./build/pysystemtrade/private_config.yaml"
 elif [ -d "$PROJECT_DIR" ]; then
   echo "Building pysystemtrade_config project..."
   (cd "$PROJECT_DIR" && ./build.sh)
@@ -62,7 +107,7 @@ elif [ -d "$PROJECT_DIR" ]; then
     exit 1
   fi
 else
-  echo "Error: $TARGET_ENV_FILE does not exist and the project directory is missing. Please clone or check out the pysystemtrade_config project."
+  echo "Error: $PROJECT_DIR directory is missing. Please clone or check out the pysystemtrade_config project."
   exit 1
 fi
 
