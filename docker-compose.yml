@@ -85,8 +85,8 @@ services:
   jupyter:
       image: pysystemtrade_jupyter
       build:
-        context: jupyter
-        dockerfile: ./Dockerfile
+        context: .
+        dockerfile: ./jupyter/Dockerfile
         args:
           SYSTEM_REPO_NAME: ${SYSTEM_REPO_NAME}
           SYSTEM_REPO_OWNER: ${SYSTEM_REPO_OWNER}
@@ -97,19 +97,6 @@ services:
           REPORT_REPO_NAME: ${REPORT_REPO_NAME}
           REPORT_REPO_OWNER: ${REPORT_REPO_OWNER}
           REPORT_REPO_ACCESS_TOKEN: ${REPORT_REPO_ACCESS_TOKEN}
-          IB_GATEWAY_IPV4_ADDRESS: ${IB_GATEWAY_IPV4_ADDRESS}
-          IB_GATEWAY_PORT: ${IB_GATEWAY_PORT}
-          IB_GATEWAY_OFFSET: ${IB_GATEWAY_OFFSET}
-          IBKR_ACCOUNT: ${IBKR_ACCOUNT}
-          PARQUET_STORE: ${PARQUET_STORE}
-          MONGO_DB_HOST: ${MONGO_DB_HOST}
-          MONGO_DB_DATABASE: ${MONGO_DB_DATABASE}
-          MONGO_DB_PORT: ${MONGO_DB_PORT}
-          EMAIL_USER_ID: ${EMAIL_USER_ID}
-          EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-          EMAIL_SERVER: ${EMAIL_SERVER}
-          EMAIL_PORT: ${EMAIL_PORT}
-          EMAIL_TO: ${EMAIL_TO}
       container_name: jupyter${NAME_SUFFIX}
       restart: no
       environment:
@@ -137,8 +124,8 @@ services:
       image: pysystemtrade
       pull_policy: never
       build:
-        context: ./pysystemtrade
-        dockerfile: ./Dockerfile
+        context: .
+        dockerfile: ./pysystemtrade/Dockerfile
         args:
           SYSTEM_REPO_NAME: ${SYSTEM_REPO_NAME}
           SYSTEM_REPO_OWNER: ${SYSTEM_REPO_OWNER}
@@ -149,19 +136,6 @@ services:
           REPORT_REPO_NAME: ${REPORT_REPO_NAME}
           REPORT_REPO_OWNER: ${REPORT_REPO_OWNER}
           REPORT_REPO_ACCESS_TOKEN: ${REPORT_REPO_ACCESS_TOKEN}
-          IB_GATEWAY_IPV4_ADDRESS: ${IB_GATEWAY_IPV4_ADDRESS}
-          IB_GATEWAY_PORT: ${IB_GATEWAY_PORT}
-          IB_GATEWAY_OFFSET: ${IB_GATEWAY_OFFSET}
-          IBKR_ACCOUNT: ${IBKR_ACCOUNT}
-          PARQUET_STORE: ${PARQUET_STORE}
-          MONGO_DB_HOST: ${MONGO_DB_HOST}
-          MONGO_DB_DATABASE: ${MONGO_DB_DATABASE}
-          MONGO_DB_PORT: ${MONGO_DB_PORT}
-          EMAIL_USER_ID: ${EMAIL_USER_ID}
-          EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-          EMAIL_SERVER: ${EMAIL_SERVER}
-          EMAIL_PORT: ${EMAIL_PORT}
-          EMAIL_TO: ${EMAIL_TO}
       restart: no
       entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
       logging:
