@@ -1,0 +1,20 @@
+---
+- name: Test Playbook
+  hosts: servers
+  become: yes
+  tasks:
+    - name: Check uptime
+      command: uptime
+      register: uptime_output  # Make sure to remember the variable name used here
+
+    - name: Print uptime
+      debug:
+        msg: "The uptime of the server is: {{ uptime_output.stdout }}"  # Correct variable name
+
+    - name: Ensure necessary packages are installed
+      apt:
+        name:
+          - wget
+          - gpg
+        state: present
+        update_cache: yes
