@@ -1,0 +1,62 @@
+---
+- name: Gather and set Vault environment variables on target hosts
+  hosts: all
+  gather_facts: no
+  vars:
+    vault_addr_var: "{{ lookup('env', 'VAULT_ADDR') }}"
+    vault_token_var: "{{ lookup('env', 'VAULT_TOKEN') }}"
+
+  tasks:
+    - name: Set VAULT_ADDR fact
+      set_fact:
+        vault_addr: "{{ vault_addr_var }}"
+
+    - name: Set VAULT_TOKEN fact
+      set_fact:
+        vault_token: "{{ vault_token_var }}"
+
+    - name: Display gathered environment variables
+      debug:
+        msg:
+          - "VAULT_ADDR: {{ vault_addr }}"
+          - "VAULT_TOKEN: {{ vault_token }}"
+
+- name: Copy VAULT_ADDR and VAULT_TOKEN to user bash env
+  hosts: all
+  become: yes
+  vars:
+    user: "makutaku"  # Change this to the appropriate user
+
+  tasks:
+    - name: Ensure user home directory exists
+      stat:
+        path: "/home/{{ user }}"
+      register: user_home
+
+    - name: Check if .bashrc exists
+      stat:
+        path: "/home/{{ user }}/.bashrc"
+      register: bashrc_stat
+
+    - name: Create .bashrc if it does not exist
+      file:
+        path: "/home/{{ user }}/.bashrc"
+        state: touch
+        owner: "{{ user }}"
+        group: "{{ user }}"
+      when: not bashrc_stat.stat.exists
+
+    - name: Add VAULT_ADDR to .bashrc
+      lineinfile:
+        path: "/home/{{ user }}/.bashrc"
+        line: "export VAULT_ADDR=\"{{ vault_addr }}\""
+        state: present
+        create: yes
+
+    - name: Add VAULT_TOKEN to .bashrc
+      lineinfile:
+        path: "/home/{{ user }}/.bashrc"
+        line: "export VAULT_TOKEN=\"{{ vault_token }}\""
+        state: present
+        create: yes
+
