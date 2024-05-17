@@ -1,0 +1,52 @@
+---
+- name: Install Docker
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
+
+    - name: Create /etc/apt/keyrings directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Docker's official GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Add the Docker repository to Apt sources
+      shell: |
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \"$VERSION_CODENAME\") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    - name: Update apt package index again
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
