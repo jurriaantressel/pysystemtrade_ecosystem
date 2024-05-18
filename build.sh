@@ -91,23 +91,25 @@ copy_file() {
 
 
 # Define the path for the target environment file
-TARGET_ENV_FILE="../pysystemtrade_config/build/env_files/$ENV.env"
-TARGET_PRIVATE_FILE="../pysystemtrade_config/build/pysystemtrade/$ENV.private_config.yaml"
-PROJECT_DIR="../pysystemtrade_config"
+CONFIG_PROJECT_NAME="pysystemtrade_config"
+CONFIG_PROJECT_DIR="../$CONFIG_PROJECT_NAME"
+CONFIG_PROJECT_ARTIFACT_DIR="$CONFIG_PROJECT_DIR/build/$ENV"
+TARGET_ENV_FILE="$CONFIG_PROJECT_ARTIFACT_DIR/.env"
+TARGET_PRIVATE_FILE="$CONFIG_PROJECT_ARTIFACT_DIR/pysystemtrade/private_config.yaml"
 
 # Check if the target .env file exists
 if [[ -f $TARGET_ENV_FILE && -f $TARGET_PRIVATE_FILE ]]; then
   create_link "$TARGET_ENV_FILE" ".env" "."
   copy_file "$TARGET_PRIVATE_FILE" "./build/pysystemtrade/private_config.yaml"
-elif [ -d "$PROJECT_DIR" ]; then
-  echo "Building pysystemtrade_config project..."
-  (cd "$PROJECT_DIR" && ./build.sh)
+elif [ -d "$CONFIG_PROJECT_DIR" ]; then
+  echo "Building $CONFIG_PROJECT_NAME project..."
+  (cd "$CONFIG_PROJECT_DIR" && ./build.sh)
   if [ $? -ne 0 ]; then
-    echo "Error: Failed to build pysystemtrade_config project."
+    echo "Error: Failed to build $CONFIG_PROJECT_NAME project."
     exit 1
   fi
 else
-  echo "Error: $PROJECT_DIR directory is missing. Please clone or check out the pysystemtrade_config project."
+  echo "Error: $CONFIG_PROJECT_DIR directory is missing. Please clone or check out the $CONFIG_PROJECT_NAME project."
   exit 1
 fi
 
@@ -125,13 +127,13 @@ if [ -z "$MARKET_DATA_PATH" ]; then
   exit 1
 fi
 
-# Default user and group ID
-USER_ID=${USER_ID:-99}   # Fallback to 99 if not provided in .env file
-GROUP_ID=${GROUP_ID:-100} # Fallback to 100 if not provided in .env file
-
-# Initialize the market data directory, pass user and group ID
-./bc_utils/init_data_path.sh "$MARKET_DATA_PATH" "$USER_ID" "$GROUP_ID"
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to initialize market data directory."
-  exit 1
-fi
+## Default user and group ID
+#USER_ID=${USER_ID:-99}   # Fallback to 99 if not provided in .env file
+#GROUP_ID=${GROUP_ID:-100} # Fallback to 100 if not provided in .env file
+#
+## Initialize the market data directory, pass user and group ID
+#./bc_utils/init_data_path.sh "$MARKET_DATA_PATH" "$USER_ID" "$GROUP_ID"
+#if [ $? -ne 0 ]; then
+#  echo "Error: Failed to initialize market data directory."
+#  exit 1
+#fi
