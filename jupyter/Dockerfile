@@ -1,28 +1,4 @@
-FROM python:3.10.13 as builder
-
-LABEL maintainer="tobias@anti-gravity.as" \
-      version="0.1" \
-      description="This is custom Docker Image for creating a pysystemtrade container in the pysystemtrade_ecosystem"
-
-ARG PROJECT_DIR=/opt/projects
-RUN mkdir -p $PROJECT_DIR
-
-ARG SYSTEM_REPO_NAME
-ARG SYSTEM_REPO_OWNER
-ARG SYSTEM_REPO_ACCESS_TOKEN
-RUN git clone -b develop https://$SYSTEM_REPO_ACCESS_TOKEN:@github.com/$SYSTEM_REPO_OWNER/$SYSTEM_REPO_NAME.git $PROJECT_DIR/$SYSTEM_REPO_NAME
-
-ARG SYSTEM_REPO_PRIVATE_DIR=$PROJECT_DIR/$SYSTEM_REPO_NAME/private
-COPY build/$SYSTEM_REPO_NAME/private_config.yaml $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
-RUN cat $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
-
-ARG CONFIG_REPO_NAME
-ARG CONFIG_REPO_OWNER
-ARG CONFIG_REPO_ACCESS_TOKEN
-RUN git clone -b master https://$CONFIG_REPO_ACCESS_TOKEN:@github.com/$CONFIG_REPO_OWNER/$CONFIG_REPO_NAME.git $PROJECT_DIR/$CONFIG_REPO_NAME
-
-# Final stage
-FROM python:3.10.13 as final_stage
+FROM python:3.10.13
 
 # Set environment variable for timezone and configure timezone
 ENV TZ=${TZ:-America/Chicago}
@@ -40,19 +16,21 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Declare ARGs required for this stage
-ARG PROJECT_DIR=/opt/projects
 ARG SYSTEM_REPO_NAME
+ARG SYSTEM_REPO_DIR
+ARG SYSTEM_REPO_PRIVATE_DIR=$SYSTEM_REPO_DIR/private
 
-# Copy project directory from builder stage
-COPY --from=builder $PROJECT_DIR $PROJECT_DIR
+COPY /build/$SYSTEM_REPO_NAME $SYSTEM_REPO_DIR/
 
 # Set environment variables for pysystemtrade
-ENV PYSYS_CODE=$PROJECT_DIR/$SYSTEM_REPO_NAME \
-    PYSYS_PRIVATE_CONFIG_DIR=$PROJECT_DIR/$SYSTEM_REPO_NAME/private \
-    SCRIPT_PATH=$PROJECT_DIR/$SYSTEM_REPO_NAME/sysproduction/linux/scripts \
+ENV PYSYS_CODE=$SYSTEM_REPO_DIR \
+    PYSYS_PRIVATE_CONFIG_DIR=$SYSTEM_REPO_PRIVATE_DIR \
+    SCRIPT_PATH=$SYSTEM_REPO_DIR/sysproduction/linux/scripts \
     PATH="$PATH:$SCRIPT_PATH"
 
-WORKDIR $PROJECT_DIR/$SYSTEM_REPO_NAME
+RUN cat $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
+
+WORKDIR $SYSTEM_REPO_DIR
 
 # Install requirements and package
 RUN pip3 install jupyterlab && \

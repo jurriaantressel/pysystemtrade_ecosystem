@@ -100,7 +100,10 @@ TARGET_PRIVATE_FILE="$CONFIG_PROJECT_ARTIFACT_DIR/pysystemtrade/private_config.y
 # Check if the target .env file exists
 if [[ -f $TARGET_ENV_FILE && -f $TARGET_PRIVATE_FILE ]]; then
   create_link "$TARGET_ENV_FILE" ".env" "."
-  copy_file "$TARGET_PRIVATE_FILE" "./build/pysystemtrade/private_config.yaml"
+
+  rm -rf "./build/pysystemtrade"
+  cp -ra ../pysystemtrade "./build/"
+  copy_file "$TARGET_PRIVATE_FILE" "./build/pysystemtrade/private/private_config.yaml"
 
   rm -rf "./build/bc-utils"
   mkdir -p "./build/bc-utils/configs/"
