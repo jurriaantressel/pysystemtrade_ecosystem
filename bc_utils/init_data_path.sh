@@ -22,17 +22,46 @@ fi
 USER_ID=${USER_ID:-99}   # Fallback to 99 if not provided in .env file
 GROUP_ID=${GROUP_ID:-100} # Fallback to 100 if not provided in .env file
 BASE_DIR=$MARKET_DATA_PATH
+desired_owner="$USER_ID:$GROUP_ID"
+# Get the username associated with the UID
+TARGET_USER=$(getent passwd "$USER_ID" | cut -d: -f1)
 
 # Check if the base directory exists, and attempt to create it if it does not
 if [ ! -d "$BASE_DIR" ]; then
   echo "Base directory '$BASE_DIR' does not exist. Attempting to create it..."
-  if ! mkdir -p "$BASE_DIR"; then
+  if ! sudo -u $TARGET_USER mkdir -p "$BASE_DIR"; then
     echo "Error: Failed to create base directory '$BASE_DIR'."
     exit 1
   else
+    chmod g+s "$BASE_DIR"
     echo "Successfully created base directory '$BASE_DIR'."
   fi
 fi
+
+
+# Check and change owner only if needed
+current_owner=$(stat -c "%u:%g" "$BASE_DIR")
+if [ "$current_owner" != "$desired_owner" ]; then
+  if ! chown -R $desired_owner "$BASE_DIR"; then
+    echo "Failed to set ownership for $BASE_DIR to $desired_owner" >&2
+    exit 1
+  else
+    echo "Changed ownership of $BASE_DIR to $desired_owner"
+  fi
+fi
+
+# Check and set permissions only if needed
+current_perms=$(stat -c "%a" "$BASE_DIR")
+desired_perms="775"
+if [ "$current_perms" != "$desired_perms" ]; then
+  if ! chmod -R $desired_perms "$BASE_DIR"; then
+    echo "Failed to set permissions for $BASE_DIR to $desired_perms" >&2
+    exit 1
+  else
+    echo "Set permission of $BASE_DIR to $desired_perms"
+  fi
+fi
+
 
 # List of subdirectories to process
 declare -a subdirs=("yahoo" "ibkr" "barchart")
@@ -43,34 +72,11 @@ for subdir in "${subdirs[@]}"; do
   full_path="$BASE_DIR/$subdir"
 
   # Create the subdirectory if it doesn't exist
-  if ! mkdir -p "$full_path"; then
+  if ! sudo -u $TARGET_USER mkdir -p "$full_path"; then
     echo "Failed to create $full_path" >&2
     exit 1
   fi
 
-  # Check and change owner only if needed
-  current_owner=$(stat -c "%u:%g" "$full_path")
-  desired_owner="$USER_ID:$GROUP_ID"
-  if [ "$current_owner" != "$desired_owner" ]; then
-    if ! chown -R $desired_owner "$full_path"; then
-      echo "Failed to set ownership for $full_path to $desired_owner" >&2
-      exit 1
-    else
-      echo "Changed ownership of $full_path to $desired_owner"
-    fi
-  fi
-
-  # Check and set permissions only if needed
-  current_perms=$(stat -c "%a" "$full_path")
-  desired_perms="775"
-  if [ "$current_perms" != "$desired_perms" ]; then
-    if ! chmod -R $desired_perms "$full_path"; then
-      echo "Failed to set permissions for $full_path to $desired_perms" >&2
-      exit 1
-    else
-      echo "Set permission of $full_path to $desired_perms"
-    fi
-  fi
-
   echo "Processed directory: $full_path"
 done
+
