@@ -1,14 +1,27 @@
 #!/bin/bash
 
-# Check if a base directory path is provided
-if [ -z "$1" ]; then
-  echo "Usage: $0 <base_directory> [user_id] [group_id]" >&2
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
+env_file=$SCRIPT_DIR/../.env
+
+# Source the .env file to get MARKET_DATA_PATH
+if [ -f "$env_file" ]; then
+  source $env_file
+else
+  echo "Error: $env_file file does not exist."
   exit 1
 fi
 
-BASE_DIR=$1
-USER_ID=${2:-99}   # Fallback to 99 if not provided
-GROUP_ID=${3:-100} # Fallback to 100 if not provided
+# Check if the MARKET_DATA_PATH variable is set
+if [ -z "$MARKET_DATA_PATH" ]; then
+  echo "Error: MARKET_DATA_PATH variable is not set."
+  exit 1
+fi
+
+# Default user and group ID
+USER_ID=${USER_ID:-99}   # Fallback to 99 if not provided in .env file
+GROUP_ID=${GROUP_ID:-100} # Fallback to 100 if not provided in .env file
+BASE_DIR=$MARKET_DATA_PATH
 
 # Check if the base directory exists, and attempt to create it if it does not
 if [ ! -d "$BASE_DIR" ]; then
@@ -42,6 +55,8 @@ for subdir in "${subdirs[@]}"; do
     if ! chown -R $desired_owner "$full_path"; then
       echo "Failed to set ownership for $full_path to $desired_owner" >&2
       exit 1
+    else
+      echo "Changed ownership of $full_path to $desired_owner"
     fi
   fi
 
@@ -52,6 +67,8 @@ for subdir in "${subdirs[@]}"; do
     if ! chmod -R $desired_perms "$full_path"; then
       echo "Failed to set permissions for $full_path to $desired_perms" >&2
       exit 1
+    else
+      echo "Set permission of $full_path to $desired_perms"
     fi
   fi
 

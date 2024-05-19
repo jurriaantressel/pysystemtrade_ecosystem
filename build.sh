@@ -101,6 +101,12 @@ TARGET_PRIVATE_FILE="$CONFIG_PROJECT_ARTIFACT_DIR/pysystemtrade/private_config.y
 if [[ -f $TARGET_ENV_FILE && -f $TARGET_PRIVATE_FILE ]]; then
   create_link "$TARGET_ENV_FILE" ".env" "."
   copy_file "$TARGET_PRIVATE_FILE" "./build/pysystemtrade/private_config.yaml"
+
+  rm -rf "./build/bc-utils"
+  mkdir -p "./build/bc-utils/configs/"
+  cp -ra ../bc-utils "./build/"
+  cp -ra "$CONFIG_PROJECT_ARTIFACT_DIR"/bc-utils/*.* "./build/bc-utils/configs/"
+
 elif [ -d "$CONFIG_PROJECT_DIR" ]; then
   echo "Building $CONFIG_PROJECT_NAME project..."
   (cd "$CONFIG_PROJECT_DIR" && ./build.sh)
@@ -113,27 +119,3 @@ else
   exit 1
 fi
 
-# Source the .env file to get MARKET_DATA_PATH
-if [ -f ".env" ]; then
-  source .env
-else
-  echo "Error: .env file does not exist."
-  exit 1
-fi
-
-# Check if the MARKET_DATA_PATH variable is set
-if [ -z "$MARKET_DATA_PATH" ]; then
-  echo "Error: MARKET_DATA_PATH variable is not set."
-  exit 1
-fi
-
-## Default user and group ID
-#USER_ID=${USER_ID:-99}   # Fallback to 99 if not provided in .env file
-#GROUP_ID=${GROUP_ID:-100} # Fallback to 100 if not provided in .env file
-#
-## Initialize the market data directory, pass user and group ID
-#./bc_utils/init_data_path.sh "$MARKET_DATA_PATH" "$USER_ID" "$GROUP_ID"
-#if [ $? -ne 0 ]; then
-#  echo "Error: Failed to initialize market data directory."
-#  exit 1
-#fi
