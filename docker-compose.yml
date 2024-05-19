@@ -88,15 +88,8 @@ services:
         context: .
         dockerfile: ./jupyter/Dockerfile
         args:
-          SYSTEM_REPO_NAME: ${SYSTEM_REPO_NAME}
-          SYSTEM_REPO_OWNER: ${SYSTEM_REPO_OWNER}
-          SYSTEM_REPO_ACCESS_TOKEN: ${SYSTEM_REPO_ACCESS_TOKEN}
-          CONFIG_REPO_NAME: ${CONFIG_REPO_NAME}
-          CONFIG_REPO_OWNER: ${CONFIG_REPO_OWNER}
-          CONFIG_REPO_ACCESS_TOKEN: ${CONFIG_REPO_ACCESS_TOKEN}
-          REPORT_REPO_NAME: ${REPORT_REPO_NAME}
-          REPORT_REPO_OWNER: ${REPORT_REPO_OWNER}
-          REPORT_REPO_ACCESS_TOKEN: ${REPORT_REPO_ACCESS_TOKEN}
+          SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
+          SYSTEM_REPO_TARGET_DIR: ${SYSTEM_REPO_TARGET_DIR}
       container_name: jupyter${NAME_SUFFIX}
       restart: no
       environment:
@@ -127,8 +120,8 @@ services:
         context: .
         dockerfile: ./pysystemtrade/Dockerfile
         args:
-          SYSTEM_REPO_NAME: ${SYSTEM_REPO_NAME}
-          SYSTEM_REPO_DIR: ${SYSTEM_REPO_DIR}
+          SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
+          SYSTEM_REPO_TARGET_DIR: ${SYSTEM_REPO_TARGET_DIR}
       restart: no
       entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
       logging:
@@ -291,8 +284,8 @@ services:
         args:
           USER_ID: ${USER_ID}
           GROUP_ID: ${GROUP_ID}
-          BC_UTILS_REPO_NAME: ${BC_UTILS_REPO_NAME}
-          BC_UTILS_REPO_DIR: ${BC_UTILS_REPO_DIR}
+          BC_UTILS_REPO_SOURCE_DIR: ${BC_UTILS_REPO_SOURCE_DIR}
+          BC_UTILS_REPO_TARGET_DIR: ${BC_UTILS_REPO_TARGET_DIR}
       restart: no
       entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
       logging:
@@ -322,7 +315,7 @@ services:
         BARCHART_END_YEAR: "2025"
         BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
         BARCHART_RANDOM_SLEEP_IN_SEC: 1
-        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/yahoo.config.json"
+        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_TARGET_DIR}/configs/yahoo.config.json"
         BARCHART_LOGGING_LEVEL: "DEBUG"
         RUN_ON_STARTUP: "True"
         BARCHART_BACKUP_DATA: "True"
@@ -357,7 +350,7 @@ services:
         BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
         BARCHART_DAILY_DOWNLOAD_LIMIT: 200
         BARCHART_RANDOM_SLEEP_IN_SEC: 10
-        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/barchart.config.json"
+        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_TARGET_DIR}/configs/barchart.config.json"
         BARCHART_LOGGING_LEVEL: "DEBUG"
         RUN_ON_STARTUP: "True"
         BARCHART_BACKUP_DATA: "True"
@@ -390,7 +383,7 @@ services:
         BARCHART_END_YEAR: "2025"
         BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
         BARCHART_RANDOM_SLEEP_IN_SEC: 10
-        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/ibkr.config.json"
+        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_TARGET_DIR}/configs/ibkr.config.json"
         BARCHART_LOGGING_LEVEL: "DEBUG"
         RUN_ON_STARTUP: "True"
         BARCHART_BACKUP_DATA: "True"

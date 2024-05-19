@@ -16,21 +16,21 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Declare ARGs required for this stage
-ARG SYSTEM_REPO_NAME
-ARG SYSTEM_REPO_DIR
-ARG SYSTEM_REPO_PRIVATE_DIR=$SYSTEM_REPO_DIR/private
+ARG SYSTEM_REPO_SOURCE_DIR
+ARG SYSTEM_REPO_TARGET_DIR
+ARG SYSTEM_REPO_PRIVATE_DIR=$SYSTEM_REPO_TARGET_DIR/private
 
-COPY /build/$SYSTEM_REPO_NAME $SYSTEM_REPO_DIR/
+COPY $SYSTEM_REPO_SOURCE_DIR $SYSTEM_REPO_TARGET_DIR/
 
 # Set environment variables for pysystemtrade
-ENV PYSYS_CODE=$SYSTEM_REPO_DIR \
+ENV PYSYS_CODE=$SYSTEM_REPO_TARGET_DIR \
     PYSYS_PRIVATE_CONFIG_DIR=$SYSTEM_REPO_PRIVATE_DIR \
-    SCRIPT_PATH=$SYSTEM_REPO_DIR/sysproduction/linux/scripts \
+    SCRIPT_PATH=$SYSTEM_REPO_TARGET_DIR/sysproduction/linux/scripts \
     PATH="$PATH:$SCRIPT_PATH"
 
 RUN cat $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
 
-WORKDIR $SYSTEM_REPO_DIR
+WORKDIR $SYSTEM_REPO_TARGET_DIR
 
 # Install requirements and package
 RUN pip3 install jupyterlab && \
