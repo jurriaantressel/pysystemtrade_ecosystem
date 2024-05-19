@@ -7,9 +7,9 @@ RUN ln -sf /usr/share/zoneinfo/$TZ /etc/timezone && \
     mkdir -p /home/reports /home/logs && \
     mkdir -p /home/echos /home/csv_backup
 
-# Install vim and upgrade pip in the same layer
+# Install vim, build-essential, and python3-dev, and upgrade pip in the same layer
 RUN apt-get update && \
-    apt-get install -y vim && \
+    apt-get install -y vim build-essential python3-dev && \
     pip3 install --upgrade pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
