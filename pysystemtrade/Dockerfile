@@ -31,6 +31,10 @@ RUN cat $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
 
 WORKDIR $SYSTEM_REPO_TARGET_DIR
 
+# Upgrade pip, setuptools, and wheel
+RUN pip3 install --upgrade pip setuptools wheel
+
+
 # Install requirements and package
 RUN pip3 install --requirement requirements.txt && \
     pip3 install -e .
