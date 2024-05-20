@@ -112,24 +112,6 @@ services:
           max-size: "200k"
           max-file: "1"
 
-
-  test:
-      container_name: builder_handler${NAME_SUFFIX}
-      image: test
-      pull_policy: never
-      build:
-        context: .
-        dockerfile: ./test/Dockerfile
-        args:
-          SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
-          SYSTEM_REPO_TARGET_DIR: ${SYSTEM_REPO_TARGET_DIR}
-      restart: no
-      entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
-      logging:
-        options:
-          max-size: "100k"
-          max-file: "1"
-
   builder_handler:
       container_name: builder_handler${NAME_SUFFIX}
       image: pysystemtrade
@@ -412,6 +394,24 @@ services:
         options:
           max-size: "5m"
           max-file: "3"
+
+  test:
+      container_name: builder_handler${NAME_SUFFIX}
+      profiles: ["debug"]
+      image: test
+      pull_policy: never
+      build:
+        context: .
+        dockerfile: ./test/Dockerfile
+        args:
+          SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
+          SYSTEM_REPO_TARGET_DIR: ${SYSTEM_REPO_TARGET_DIR}
+      restart: no
+      entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
+      logging:
+        options:
+          max-size: "100k"
+          max-file: "1"
 
 volumes:
   mongo_db:
