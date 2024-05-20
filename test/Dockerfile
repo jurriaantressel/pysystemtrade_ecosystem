@@ -35,7 +35,7 @@ WORKDIR $SYSTEM_REPO_TARGET_DIR
 
 RUN apt-get update && \
     apt-get install -y vim build-essential python3-dev && \
-    pip3 install --upgrade pip setuptools wheel && \
+    pip3 install --upgrade pip setuptools wheel Cython && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
