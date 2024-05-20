@@ -9,7 +9,7 @@ RUN ln -sf /usr/share/zoneinfo/$TZ /etc/timezone && \
 
 # Install vim, build-essential, and python3-dev, and upgrade pip in the same layer
 RUN apt-get update && \
-    apt-get install -y vim build-essential python3-dev && \
+    apt-get install -y vim build-essential python3-dev libyaml-dev && \
     pip3 install --upgrade pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
