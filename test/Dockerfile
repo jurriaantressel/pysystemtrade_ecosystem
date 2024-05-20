@@ -33,14 +33,17 @@ RUN cat $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
 
 WORKDIR $SYSTEM_REPO_TARGET_DIR
 
+# Install necessary build tools and libraries
 RUN apt-get update && \
-    apt-get install -y vim build-essential python3-dev && \
-    pip3 install --upgrade pip setuptools wheel Cython && \
+    apt-get install -y vim build-essential python3-dev libyaml-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install -r requirements.txt
+# Upgrade pip, setuptools, and wheel
+RUN pip3 install --upgrade pip setuptools wheel
 
+# Install requirements with verbose logging
+RUN pip3 install --requirement requirements.txt --verbose
 
 ## Install requirements and package
 #RUN pip3 install --requirement requirements.txt && \
