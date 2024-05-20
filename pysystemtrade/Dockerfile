@@ -7,9 +7,9 @@ RUN ln -sf /usr/share/zoneinfo/$TZ /etc/timezone && \
     mkdir -p /home/reports /home/logs && \
     mkdir -p /home/echos /home/csv_backup
 
-# Install vim, build-essential, and python3-dev, and upgrade pip in the same layer
+# Install vim and upgrade pip in the same layer
 RUN apt-get update && \
-    apt-get install -y vim build-essential python3-dev libyaml-dev && \
+    apt-get install -y vim && \
     pip3 install --upgrade pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -31,22 +31,12 @@ RUN cat $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
 
 WORKDIR $SYSTEM_REPO_TARGET_DIR
 
-# Upgrade pip, setuptools, and wheel
-RUN pip3 install --upgrade pip setuptools wheel
+# Install requirements and package
+RUN cat requirements.txt && \
+    pip3 install --requirement requirements.txt && \
+    pip3 install -e .
 
 
-# Install Cython explicitly
-RUN pip3 install cython
-
-# Verify Cython installation
-RUN python3 -m cython --version
-
-# Install requirements with verbose logging
-RUN pip3 install --requirement requirements.txt --verbose
-
-RUN pip3 install -e .
-
-# Copy and prepare command scripts
 COPY ./pysystemtrade/command_scripts ./command_scripts
 RUN find ./command_scripts -type f -name "*.bash" -exec chmod +x {} \;
 

@@ -34,6 +34,7 @@ WORKDIR $SYSTEM_REPO_TARGET_DIR
 
 # Install requirements and package
 RUN pip3 install jupyterlab && \
+    cat requirements.txt && \
     pip3 install --requirement requirements.txt && \
     pip3 install -e .
 
