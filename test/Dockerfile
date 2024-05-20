@@ -33,10 +33,12 @@ RUN cat $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
 
 WORKDIR $SYSTEM_REPO_TARGET_DIR
 
+RUN apt-get update && \
+    apt-get install -y vim build-essential python3-dev && \
+    pip3 install --upgrade pip setuptools wheel && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update
-RUN apt-get install -y vim build-essential python3-dev
-RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
 
