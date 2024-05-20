@@ -42,6 +42,13 @@ RUN apt-get update && \
 # Upgrade pip, setuptools, and wheel
 RUN pip3 install --upgrade pip setuptools wheel
 
+
+# Install Cython explicitly
+RUN pip3 install cython
+
+# Verify Cython installation
+RUN python3 -m cython --version
+
 # Install requirements with verbose logging
 RUN pip3 install --requirement requirements.txt --verbose
 
