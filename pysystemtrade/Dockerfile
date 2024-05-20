@@ -7,12 +7,11 @@ RUN ln -sf /usr/share/zoneinfo/$TZ /etc/timezone && \
     mkdir -p /home/reports /home/logs && \
     mkdir -p /home/echos /home/csv_backup
 
-# Install vim and upgrade pip in the same layer
 RUN apt-get update && \
     apt-get install -y vim && \
-    pip3 install --upgrade pip && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    pip3 install --upgrade pip
 
 # Declare ARGs required for this stage
 ARG SYSTEM_REPO_SOURCE_DIR

@@ -6,14 +6,13 @@ RUN ln -sf /usr/share/zoneinfo/$TZ /etc/timezone && \
     ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
     mkdir -p /home/reports /home/logs
 
-# Install vim, build-essential, and python3-dev, and upgrade pip in the same layer
 RUN apt-get update && \
-    apt-get install -y vim build-essential python3-dev && \
+    apt-get install -y vim && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     pip3 install --upgrade pip && \
     pip3 install sqlalchemy==1.3.22 && \
-    pip3 install psycopg2-binary && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    pip3 install psycopg2-binary
 
 # Declare ARGs required for this stage
 ARG SYSTEM_REPO_SOURCE_DIR
