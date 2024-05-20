@@ -35,9 +35,16 @@ WORKDIR $SYSTEM_REPO_TARGET_DIR
 RUN pip3 install --upgrade pip setuptools wheel
 
 
-# Install requirements and package
-RUN pip3 install --requirement requirements.txt && \
-    pip3 install -e .
+# Install Cython explicitly
+RUN pip3 install cython
+
+# Verify Cython installation
+RUN python3 -m cython --version
+
+# Install requirements with verbose logging
+RUN pip3 install --requirement requirements.txt --verbose
+
+RUN pip3 install -e .
 
 # Copy and prepare command scripts
 COPY ./pysystemtrade/command_scripts ./command_scripts
