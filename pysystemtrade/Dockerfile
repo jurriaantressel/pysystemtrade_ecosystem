@@ -26,7 +26,7 @@ ENV PYSYS_CODE=$SYSTEM_REPO_DIR \
     SCRIPT_PATH=$SYSTEM_REPO_DIR/sysproduction/linux/scripts \
     PATH="$PATH:$SCRIPT_PATH"
 
-RUN cat $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
+# RUN cat $SYSTEM_REPO_PRIVATE_DIR/private_config.yaml
 
 WORKDIR $SYSTEM_REPO_DIR
 
