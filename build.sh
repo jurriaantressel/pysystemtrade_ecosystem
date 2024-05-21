@@ -60,7 +60,6 @@ create_link() {
 copy_file() {
   local source_file="$1"
   local destination_file="$2"
-  local destination_dir="$3"
 
   # Check if a local destination file exists
   if [ -f "$destination_file" ]; then
@@ -93,7 +92,7 @@ copy_file() {
 # Define the path for the target environment file
 CONFIG_PROJECT_NAME="pysystemtrade_config"
 CONFIG_PROJECT_DIR="../$CONFIG_PROJECT_NAME"
-CONFIG_PROJECT_ARTIFACT_DIR="$CONFIG_PROJECT_DIR/build/$ENV"
+CONFIG_PROJECT_ARTIFACT_DIR="$CONFIG_PROJECT_DIR/build"
 TARGET_ENV_FILE="$CONFIG_PROJECT_ARTIFACT_DIR/.env"
 TARGET_PRIVATE_FILE="$CONFIG_PROJECT_ARTIFACT_DIR/pysystemtrade/private_config.yaml"
 
@@ -110,15 +109,8 @@ if [[ -f $TARGET_ENV_FILE && -f $TARGET_PRIVATE_FILE ]]; then
   cp -ra ../bc-utils "./build/"
   cp -ra "$CONFIG_PROJECT_ARTIFACT_DIR"/bc-utils/*.* "./build/bc-utils/configs/"
 
-elif [ -d "$CONFIG_PROJECT_DIR" ]; then
-  echo "Building $CONFIG_PROJECT_NAME project..."
-  (cd "$CONFIG_PROJECT_DIR" && ./build.sh)
-  if [ $? -ne 0 ]; then
-    echo "Error: Failed to build $CONFIG_PROJECT_NAME project."
-    exit 1
-  fi
 else
-  echo "Error: $CONFIG_PROJECT_DIR directory is missing. Please clone or check out the $CONFIG_PROJECT_NAME project."
+  echo "Error: $CONFIG_PROJECT_DIR directory is missing. Please clone and build $CONFIG_PROJECT_NAME project."
   exit 1
 fi
 
