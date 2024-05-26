@@ -101,6 +101,7 @@ services:
         - ./csv_backup:/home/csv_backup
         - ./backtests:/home/backtests
         - ./logs/jupyter:/home/logs
+        - ${CONFIG_REPO_SOURCE_DIR}/private/${ENV}:${SYSTEM_REPO_DIR}/private
       depends_on:
         - ib_gateway
         - mongo_db
@@ -128,6 +129,11 @@ services:
         options:
           max-size: "100k"
           max-file: "1"
+      env_file:
+        - path: ./build/env_files/build/.env
+          required: true
+        - path: ./build/env_files/${ENVIRONMENT}/.env
+          required: false
 
   stack_handler:
       image: pysystemtrade
@@ -144,6 +150,7 @@ services:
       volumes:
         - ./logs/stack_handler:/home/logs
         - parquet_store:$PARQUET_STORE
+        - ${CONFIG_REPO_SOURCE_DIR}/pysystemtrade/config/private/${ENV}:${SYSTEM_REPO_DIR}/private
       networks:
         trading_net:
           ipv4_address: ${STACK_HANDLER_IPV4_ADDRESS}
@@ -154,6 +161,9 @@ services:
         options:
           max-size: "10m"
           max-file: "3"
+      env_file:
+            - ./build/env_files/${ENVIRONMENT}/.env
+
 
   price_updates:
       image: pysystemtrade

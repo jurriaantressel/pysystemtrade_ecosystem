@@ -21,13 +21,13 @@
 
 echo "Building pysystemtrade_ecosystem"
 
-# Check for command-line argument and use it to override ENV if provided
-if [ ! -z "$1" ]; then
-  ENV="$1"
-elif [ -z "$ENV" ]; then
-  echo "Error: ENV variable is not set and no command-line argument provided."
-  exit 1
-fi
+## Check for command-line argument and use it to override ENV if provided
+#if [ ! -z "$1" ]; then
+#  ENV="$1"
+#elif [ -z "$ENV" ]; then
+#  echo "Error: ENV variable is not set and no command-line argument provided."
+#  exit 1
+#fi
 
 BUILD_DIR="./build"
 if [[ -d "$BUILD_DIR" ]]; then
@@ -42,7 +42,7 @@ if [[ ! -d "$CONFIG_BUILD_DIR" ]]; then
   echo "Error: $CONFIG_BUILD_DIR directory is missing. Build $CONFIG_PROJECT_NAME project."
   exit 1
 else
-  cp -ra $CONFIG_BUILD_DIR/pysystemtrade_ecosystem/.env .
+  cp -ra $CONFIG_BUILD_DIR/pysystemtrade_ecosystem/. "$BUILD_DIR"/
 fi
 
 PYSYSTEMTRADE_PROJECT_NAME="pysystemtrade"
