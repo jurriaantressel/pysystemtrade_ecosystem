@@ -14,8 +14,8 @@ services:
         options:
           max-size: "5m"
           max-file: "3"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
+      environment:
+        TZ: ${TZ}
 
   db_backup:
       image: alpine
@@ -30,8 +30,8 @@ services:
         options:
           max-size: "200k"
           max-file: "1"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
+      environment:
+        TZ: ${TZ}
 
   db_restore:
       image: alpine
@@ -47,8 +47,8 @@ services:
         options:
           max-size: "200k"
           max-file: "1"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
+      environment:
+        TZ: ${TZ}
 
   ib_gateway:
       container_name: ib_gateway${NAME_SUFFIX}
@@ -85,8 +85,6 @@ services:
           SYSTEM_REPO_DIR: ${SYSTEM_REPO_DIR}
       container_name: jupyter${NAME_SUFFIX}
       restart: no
-      environment:
-        TZ: ${TZ}
       ports:
         - "8890:8888"
       volumes:
@@ -134,9 +132,6 @@ services:
       image: pysystemtrade
       container_name: stack_handler${NAME_SUFFIX}
       restart: no
-      environment:
-        TZ: ${TZ}
-        IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/stack_handler_commands.bash"]
       depends_on:
         - builder_handler
@@ -165,9 +160,6 @@ services:
       image: pysystemtrade
       container_name: price_updates${NAME_SUFFIX}
       restart: no
-      environment:
-        TZ: ${TZ}
-        IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/daily_prices_updates_commands.bash"]
       depends_on:
         - builder_handler
@@ -222,9 +214,6 @@ services:
   daily_processes:
       image: pysystemtrade
       container_name: daily_processes${NAME_SUFFIX}
-      environment:
-        TZ: ${TZ}
-        IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/daily_processes_commands.bash"]
       depends_on:
         - builder_handler
@@ -255,8 +244,6 @@ services:
         - builder_handler
         - mongo_db
       container_name: csv_backup${NAME_SUFFIX}
-      environment:
-        TZ: ${TZ}
       networks:
         trading_net:
           ipv4_address: ${CSV_BACKUP_IPV4_ADDRESS}
@@ -277,9 +264,6 @@ services:
       image: pysystemtrade
       container_name: cleaner${NAME_SUFFIX}
       restart: no
-      environment:
-        TZ: ${TZ}
-        IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/cleaner_commands.bash"]
       depends_on:
         - builder_handler
@@ -318,10 +302,10 @@ services:
         options:
           max-size: "100k"
           max-file: "1"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/bc_utils_repo.env
-        - ./build/env_files/${ENV}/yahoo_quotes.env
+#      env_file:
+#        - ./build/env_files/${ENV}/base.env
+#        - ./build/env_files/${ENV}/bc_utils_repo.env
+#        - ./build/env_files/${ENV}/yahoo_quotes.env
 
   yahoo_quotes:
       container_name: yahoo_quotes${NAME_SUFFIX}
@@ -333,6 +317,7 @@ services:
       volumes:
         - ${MARKET_DATA_PATH}/yahoo:${BARCHART_OUTPUT_DIR}:rw
         - ${BC_UTILS_REPO_SOURCE_DIR}/configs/${ENV}/yahoo.config.json:${YAHOO_QUOTES_CONFIG}
+        - ./build/env_files/${ENV}/yahoo_quotes.env:$BC_UTILS_REPO_DIR/container.env
       networks:
         trading_net:
           ipv4_address: ${YAHOO_QUOTES_IPV4_ADDRESS}
@@ -343,9 +328,6 @@ services:
           max-size: "5m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/bc_utils_repo.env
         - ./build/env_files/${ENV}/yahoo_quotes.env
 
   barchart_quotes:
@@ -358,6 +340,7 @@ services:
       volumes:
         - ${MARKET_DATA_PATH}/barchart:${BARCHART_OUTPUT_DIR}:rw
         - ${BC_UTILS_REPO_SOURCE_DIR}/configs/${ENV}/barchart.config.json:${BARCHART_QUOTES_CONFIG}
+        - ./build/env_files/${ENV}/barchart_quotes.env:$BC_UTILS_REPO_DIR/container.env
       networks:
         trading_net:
           ipv4_address: ${BARCHART_QUOTES_IPV4_ADDRESS}
@@ -368,9 +351,9 @@ services:
           max-size: "5m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/bc_utils_repo.env
+#        - ./build/env_files/${ENV}/base.env
+#        - ./build/env_files/${ENV}/network.env
+#        - ./build/env_files/${ENV}/bc_utils_repo.env
         - ./build/env_files/${ENV}/barchart_quotes.env
 
   ibkr_quotes:
@@ -386,6 +369,7 @@ services:
       volumes:
         - ${MARKET_DATA_PATH}/ibkr:${BARCHART_OUTPUT_DIR}:rw
         - ${CONFIG_REPO_SOURCE_DIR}/bc-utils/configs/${ENV}/ibkr.config.json:${IBKR_QUOTES_CONFIG}
+        - ./build/env_files/${ENV}/ibkr_quotes.env:$BC_UTILS_REPO_DIR/container.env
       networks:
         trading_net:
           ipv4_address: ${IBKR_QUOTES_IPV4_ADDRESS}
@@ -394,9 +378,9 @@ services:
           max-size: "5m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/bc_utils_repo.env
+#        - ./build/env_files/${ENV}/base.env
+#        - ./build/env_files/${ENV}/network.env
+#        - ./build/env_files/${ENV}/bc_utils_repo.env
         - ./build/env_files/${ENV}/ibkr_quotes.env
 
 #  test:
