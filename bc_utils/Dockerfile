@@ -13,8 +13,8 @@ ENV TZ=America/Chicago \
     BC_UTILS_REPO_DIR=$BC_UTILS_REPO_DIR
 
 # Copy project and cronfile
-COPY $BC_UTILS_REPO_SOURCE_DIR $BC_UTILS_REPO_DIR/
-COPY $BC_UTILS_REPO_SOURCE_DIR/cronfile /etc/cron.d/mycron
+COPY $BC_UTILS_REPO_SOURCE_DIR/app $BC_UTILS_REPO_DIR/
+COPY $BC_UTILS_REPO_SOURCE_DIR/app/cronfile /etc/cron.d/mycron
 
 # Install system dependencies
 RUN apt-get update && \

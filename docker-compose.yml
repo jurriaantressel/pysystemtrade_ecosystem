@@ -15,7 +15,7 @@ services:
           max-size: "5m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
 
   db_backup:
       image: alpine
@@ -31,7 +31,7 @@ services:
           max-size: "200k"
           max-file: "1"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
 
   db_restore:
       image: alpine
@@ -48,7 +48,7 @@ services:
           max-size: "200k"
           max-file: "1"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
 
   ib_gateway:
       container_name: ib_gateway${NAME_SUFFIX}
@@ -57,22 +57,6 @@ services:
       ports:
         - "6082:6080"
         - "${IB_GATEWAY_PORT}:8888"
-      environment:
-        USERNAME: ${IBKR_USER_ID}
-        PASSWORD: ${IBKR_PASSWORD}
-        GATEWAY_OR_TWS: ${IB_GATEWAY_PLATFORM}
-        TWOFA_TIMEOUT_ACTION: "restart"
-        IBC_TradingMode: ${IBC_TRADING_MODE}
-        IBC_ReadOnlyApi: no
-        IBC_SecondFactorDevice: "IB Key"
-        IBC_ReloginAfterSecondFactorAuthenticationTimeout: yes
-        IBC_AcceptNonBrokerageAccountWarning: yes
-        IBC_LogStructureScope: known
-        IBC_LogStructureWhen: openclose
-        IBC_ExistingSessionDetectedAction: ${IBC_EXISTING_SESSION_DETECTED_ACTION}
-        IBC_AutoRestartTime: ${IBC_AUTO_RESTART_TIME}
-        IBC_AcceptIncomingConnectionAction: ${IBC_ACCEPT_INCOMING_CONNECTION_ACTION}
-        IBC_ConfirmCryptoCurrencyOrders: transmit
       volumes:
         - gateway_jts:/root/Jts
       networks:
@@ -87,7 +71,8 @@ services:
           soft: 10000
           hard: 10000
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/ib_gateway.env
 
 
   jupyter:
@@ -121,10 +106,9 @@ services:
           max-size: "200k"
           max-file: "1"
       env_file:
-        - path: ./build/env_files/build/.env
-          required: true
-        - path: ./build/env_files/${ENVIRONMENT}/.env
-          required: false
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/system_repo.env
 
   builder_handler:
       container_name: builder_handler${NAME_SUFFIX}
@@ -143,10 +127,8 @@ services:
           max-size: "100k"
           max-file: "1"
       env_file:
-        - path: ./build/env_files/build/.env
-          required: true
-        - path: ./build/env_files/${ENVIRONMENT}/.env
-          required: false
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/system_repo.env
 
   stack_handler:
       image: pysystemtrade
@@ -175,7 +157,9 @@ services:
           max-size: "10m"
           max-file: "3"
       env_file:
-            - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/system_repo.env
 
   price_updates:
       image: pysystemtrade
@@ -202,7 +186,9 @@ services:
           max-size: "10m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/system_repo.env
 
   capital_update:
       image: pysystemtrade
@@ -229,7 +215,9 @@ services:
           max-size: "10m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/system_repo.env
 
   daily_processes:
       image: pysystemtrade
@@ -257,7 +245,9 @@ services:
           max-size: "10m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/system_repo.env
 
   csv_backup:
       image: pysystemtrade
@@ -279,7 +269,9 @@ services:
           max-size: "200k"
           max-file: "1"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/system_repo.env
 
   cleaner:
       image: pysystemtrade
@@ -303,7 +295,9 @@ services:
           max-size: "200k"
           max-file: "1"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/system_repo.env
 
   builder_quotes:
       container_name: builder_quotes${NAME_SUFFIX}
@@ -325,10 +319,9 @@ services:
           max-size: "100k"
           max-file: "1"
       env_file:
-        - path: ./build/env_files/build/.env
-          required: true
-        - path: ./build/env_files/${ENVIRONMENT}/.env
-          required: false
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/bc_utils_repo.env
+        - ./build/env_files/${ENV}/yahoo_quotes.env
 
   yahoo_quotes:
       container_name: yahoo_quotes${NAME_SUFFIX}
@@ -338,31 +331,22 @@ services:
       pull_policy: never
       restart: no
       volumes:
-        - ${YAHOO_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
+        - ${MARKET_DATA_PATH}/yahoo:${BARCHART_OUTPUT_DIR}:rw
+        - ${BC_UTILS_REPO_SOURCE_DIR}/configs/${ENV}/yahoo.config.json:${YAHOO_QUOTES_CONFIG}
       networks:
         trading_net:
           ipv4_address: ${YAHOO_QUOTES_IPV4_ADDRESS}
       depends_on:
         - builder_quotes
-      environment:
-        TZ: ${TZ}
-        BARCHART_DOWNLOADER_FACTORY: "create_yahoo_downloader"
-        BARCHART_DRY_RUN: "False"
-        BARCHART_START_YEAR: "2000"
-        BARCHART_END_YEAR: "2025"
-        BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
-        BARCHART_RANDOM_SLEEP_IN_SEC: 1
-        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/yahoo.config.json"
-        BARCHART_LOGGING_LEVEL: "DEBUG"
-        RUN_ON_STARTUP: "True"
-        BARCHART_BACKUP_DATA: "True"
-        BARCHART_FORCE_BACKUP: "False"
       logging:
         options:
           max-size: "5m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/bc_utils_repo.env
+        - ./build/env_files/${ENV}/yahoo_quotes.env
 
   barchart_quotes:
       container_name: barchart_quotes${NAME_SUFFIX}
@@ -372,34 +356,22 @@ services:
       image: bc-utils
       pull_policy: never
       volumes:
-        - ${BARCHART_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
+        - ${MARKET_DATA_PATH}/barchart:${BARCHART_OUTPUT_DIR}:rw
+        - ${BC_UTILS_REPO_SOURCE_DIR}/configs/${ENV}/barchart.config.json:${BARCHART_QUOTES_CONFIG}
       networks:
         trading_net:
           ipv4_address: ${BARCHART_QUOTES_IPV4_ADDRESS}
       depends_on:
         - builder_quotes
-      environment:
-        TZ: ${TZ}
-        BARCHART_DOWNLOADER_FACTORY: "create_barchart_downloader"
-        BARCHART_USERNAME: ${BARCHART_USERNAME}
-        BARCHART_PASSWORD: ${BARCHART_PASSWORD}
-        BARCHART_DRY_RUN: "True"
-        BARCHART_START_YEAR: "2000"
-        BARCHART_END_YEAR: "2025"
-        BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
-        BARCHART_DAILY_DOWNLOAD_LIMIT: ${BARCHART_DOWNLOAD_LIMIT}
-        BARCHART_RANDOM_SLEEP_IN_SEC: 10
-        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/barchart.config.json"
-        BARCHART_LOGGING_LEVEL: "DEBUG"
-        RUN_ON_STARTUP: "True"
-        BARCHART_BACKUP_DATA: "True"
-        BARCHART_FORCE_BACKUP: "False"
       logging:
         options:
           max-size: "5m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/bc_utils_repo.env
+        - ./build/env_files/${ENV}/barchart_quotes.env
 
   ibkr_quotes:
       container_name: ibkr_quotes${NAME_SUFFIX}
@@ -412,49 +384,40 @@ services:
         - builder_quotes
         - ib_gateway
       volumes:
-        - ${IBKR_MARKET_DATA_PATH}:${BC_UTILS_DATA_DIR}:rw
+        - ${MARKET_DATA_PATH}/ibkr:${BARCHART_OUTPUT_DIR}:rw
+        - ${CONFIG_REPO_SOURCE_DIR}/bc-utils/configs/${ENV}/ibkr.config.json:${IBKR_QUOTES_CONFIG}
       networks:
         trading_net:
           ipv4_address: ${IBKR_QUOTES_IPV4_ADDRESS}
-      environment:
-        TZ: ${TZ}
-        BARCHART_DOWNLOADER_FACTORY: "create_ibkr_downloader"
-        BARCHART_DRY_RUN: "False"
-        BARCHART_START_YEAR: "2000"
-        BARCHART_END_YEAR: "2025"
-        BARCHART_OUTPUT_DIR: "${BC_UTILS_DATA_DIR}"
-        BARCHART_RANDOM_SLEEP_IN_SEC: 10
-        BARCHART_MARKET_FILES: "${BC_UTILS_REPO_DIR}/configs/ibkr.config.json"
-        BARCHART_LOGGING_LEVEL: "DEBUG"
-        RUN_ON_STARTUP: "True"
-        BARCHART_BACKUP_DATA: "True"
-        BARCHART_FORCE_BACKUP: "False"
-        PROVIDER_HOST: ${IB_GATEWAY_IPV4_ADDRESS}
-        PROVIDER_PORT: ${IB_GATEWAY_PORT}
       logging:
         options:
           max-size: "5m"
           max-file: "3"
       env_file:
-        - ./build/env_files/${ENVIRONMENT}/.env
+        - ./build/env_files/${ENV}/base.env
+        - ./build/env_files/${ENV}/network.env
+        - ./build/env_files/${ENV}/bc_utils_repo.env
+        - ./build/env_files/${ENV}/ibkr_quotes.env
 
-  test:
-      container_name: builder_handler${NAME_SUFFIX}
-      profiles: ["debug"]
-      image: test
-      pull_policy: never
-      build:
-        context: .
-        dockerfile: ./test/Dockerfile
-        args:
-          SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
-          SYSTEM_REPO_DIR: ${SYSTEM_REPO_DIR}
-      restart: no
-      entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
-      logging:
-        options:
-          max-size: "100k"
-          max-file: "1"
+#  test:
+#      container_name: builder_handler${NAME_SUFFIX}
+#      profiles: ["debug"]
+#      image: test
+#      pull_policy: never
+#      build:
+#        context: .
+#        dockerfile: ./test/Dockerfile
+#        args:
+#          SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
+#          SYSTEM_REPO_DIR: ${SYSTEM_REPO_DIR}
+#      restart: no
+#      entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
+#      logging:
+#        options:
+#          max-size: "100k"
+#          max-file: "1"
+#      env_file:
+#        - ./build/env_files/${ENV}/base.env
 
 volumes:
   mongo_db:
