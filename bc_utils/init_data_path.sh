@@ -4,7 +4,7 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
 env_file=$SCRIPT_DIR/../.env
 
-# Source the .env file to get MARKET_DATA_PATH
+# Source the .env file to get HOST_DATA_DIR
 if [ -f "$env_file" ]; then
   source $env_file
 else
@@ -12,16 +12,24 @@ else
   exit 1
 fi
 
-# Check if the MARKET_DATA_PATH variable is set
-if [ -z "$MARKET_DATA_PATH" ]; then
-  echo "Error: MARKET_DATA_PATH variable is not set."
+# Check if the HOST_DATA_DIR variable is set
+if [ -z "$HOST_DATA_DIR" ]; then
+  echo "Error: HOST_DATA_DIR variable is not set."
   exit 1
 fi
+
+# Check if the BCU_REPO_SOURCE_DIR variable is set
+if [ -z "$BCU_REPO_SOURCE_DIR" ]; then
+  echo "Error: BCU_REPO_SOURCE_DIR variable is not set."
+  exit 1
+fi
+
+
 
 # Default user and group ID
 USER_ID=${USER_ID:-99}   # Fallback to 99 if not provided in .env file
 GROUP_ID=${GROUP_ID:-100} # Fallback to 100 if not provided in .env file
-BASE_DIR=$MARKET_DATA_PATH
+BASE_DIR=$HOST_DATA_DIR
 desired_owner="$USER_ID:$GROUP_ID"
 # Get the username associated with the UID
 TARGET_USER=$(getent passwd "$USER_ID" | cut -d: -f1)

@@ -3,18 +3,18 @@ FROM python:3.11-slim
 ARG USER_ID=99
 ARG GROUP_ID=100
 ARG USER_NAME="nobody"
-ARG BC_UTILS_REPO_DIR
-ARG BC_UTILS_REPO_SOURCE_DIR
+ARG BCU_REPO_DIR
+ARG BCU_REPO_SOURCE_DIR
 
 # Set environment variable for the time zone
 ENV TZ=America/Chicago \
     USER_ID=$USER_ID \
     GROUP_ID=$GROUP_ID \
-    BC_UTILS_REPO_DIR=$BC_UTILS_REPO_DIR
+    BCU_REPO_DIR=$BCU_REPO_DIR
 
 # Copy project and cronfile
-COPY $BC_UTILS_REPO_SOURCE_DIR/app $BC_UTILS_REPO_DIR/
-COPY $BC_UTILS_REPO_SOURCE_DIR/app/cronfile /etc/cron.d/mycron
+COPY $BCU_REPO_SOURCE_DIR/app $BCU_REPO_DIR/
+COPY $BCU_REPO_SOURCE_DIR/app/cronfile /etc/cron.d/mycron
 
 # Install system dependencies
 RUN apt-get update && \
@@ -30,7 +30,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &
     chmod u+s /usr/sbin/cron
 
 # Set work directory
-WORKDIR $BC_UTILS_REPO_DIR
+WORKDIR $BCU_REPO_DIR
 
 # Set permissions for scripts
 RUN chmod +x entrypoint.sh ping.sh run_bc_utils.sh && \

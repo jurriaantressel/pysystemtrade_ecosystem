@@ -8,6 +8,9 @@ if [[ -d "$BUILD_DIR" ]]; then
   rm -rf "$BUILD_DIR"
 fi
 
+install -d -m 2775 $BUILD_DIR
+chown :users $BUILD_DIR
+
 CONFIG_PROJECT_NAME="pysystemtrade_config"
 CONFIG_BUILD_DIR="../$CONFIG_PROJECT_NAME/build"
 echo "Copying $CONFIG_PROJECT_NAME project artifacts"
@@ -15,7 +18,7 @@ if [[ ! -d "$CONFIG_BUILD_DIR" ]]; then
   echo "Error: $CONFIG_BUILD_DIR directory is missing. Build $CONFIG_PROJECT_NAME project."
   exit 1
 else
-  cp -ra $CONFIG_BUILD_DIR/pysystemtrade_ecosystem/. "$BUILD_DIR"/
+  cp -r $CONFIG_BUILD_DIR/pysystemtrade_ecosystem/. "$BUILD_DIR"/
   rm .env
   ln -s ./build/env_files/$ENV/compose.env .env
 fi
@@ -29,19 +32,21 @@ if [[ ! -d "$PYSYSTEMTRADE_BUILD_DIR" ]]; then
   exit 1
 else
   mkdir -p "$PYSYSTEMTRADE_DEST_DIR"
-  cp -ra "$PYSYSTEMTRADE_BUILD_DIR/." "$PYSYSTEMTRADE_DEST_DIR/"
+  cp -r "$PYSYSTEMTRADE_BUILD_DIR/." "$PYSYSTEMTRADE_DEST_DIR/"
 fi
 
-BC_UTILS_PROJECT_NAME="bc-utils"
-BC_UTILS_BUILD_DIR="../$BC_UTILS_PROJECT_NAME/build"
-BC_UTILS_DEST_DIR="$BUILD_DIR/$BC_UTILS_PROJECT_NAME"
-echo "Copying $BC_UTILS_PROJECT_NAME project artifacts"
-if [[ ! -d "$BC_UTILS_BUILD_DIR" ]]; then
-  echo "Error: $BC_UTILS_BUILD_DIR directory is missing. Build $BC_UTILS_PROJECT_NAME project."
+BCU_PROJECT_NAME="bc-utils"
+BCU_BUILD_DIR="../$BCU_PROJECT_NAME/build"
+BCU_DEST_DIR="$BUILD_DIR/$BCU_PROJECT_NAME"
+echo "Copying $BCU_PROJECT_NAME project artifacts"
+if [[ ! -d "$BCU_BUILD_DIR" ]]; then
+  echo "Error: $BCU_BUILD_DIR directory is missing. Build $BCU_PROJECT_NAME project."
   exit 1
 else
   mkdir -p "$BUILD_DIR/bc-utils"
-  cp -ra "$BC_UTILS_BUILD_DIR/." "$BC_UTILS_DEST_DIR/"
+  cp -r "$BCU_BUILD_DIR/." "$BCU_DEST_DIR/"
 fi
+
+chmod -R 775 $BUILD_DIR
 
 echo "DONE!"

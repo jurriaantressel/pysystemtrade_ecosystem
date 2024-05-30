@@ -294,30 +294,26 @@ services:
         args:
           USER_ID: ${USER_ID}
           GROUP_ID: ${GROUP_ID}
-          BC_UTILS_REPO_SOURCE_DIR: ${BC_UTILS_REPO_SOURCE_DIR}
-          BC_UTILS_REPO_DIR: ${BC_UTILS_REPO_DIR}
+          BCU_REPO_SOURCE_DIR: ${BCU_REPO_SOURCE_DIR}
+          BCU_REPO_DIR: ${BCU_REPO_DIR}
       restart: no
       entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
       logging:
         options:
           max-size: "100k"
           max-file: "1"
-#      env_file:
-#        - ./build/env_files/${ENV}/base.env
-#        - ./build/env_files/${ENV}/bc_utils_repo.env
-#        - ./build/env_files/${ENV}/yahoo_quotes.env
 
   yahoo_quotes:
       container_name: yahoo_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
-      user: ${BC_UTILS_USER}
+      user: ${BCU_USER}
       image: bc-utils
       pull_policy: never
       restart: no
       volumes:
-        - ${MARKET_DATA_PATH}/yahoo:${BARCHART_OUTPUT_DIR}:rw
-        - ${BC_UTILS_REPO_SOURCE_DIR}/configs/${ENV}/yahoo.config.json:${YAHOO_QUOTES_CONFIG}
-        - ./build/env_files/${ENV}/yahoo_quotes.env:$BC_UTILS_REPO_DIR/container.env
+        - ${HOST_DATA_DIR}/yahoo:${BCU_OUTPUT_DIR}:rw
+        - ${BCU_REPO_SOURCE_DIR}/config/${ENV}/yahoo.config.json:${BCU_CONFIG_FILE}:r
+        - ./build/env_files/${ENV}/yahoo_quotes.env:$BCU_REPO_DIR/container.env
       networks:
         trading_net:
           ipv4_address: ${YAHOO_QUOTES_IPV4_ADDRESS}
@@ -333,14 +329,14 @@ services:
   barchart_quotes:
       container_name: barchart_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
-      user: "$BC_UTILS_USER"
+      user: "$BCU_USER"
       restart: no
       image: bc-utils
       pull_policy: never
       volumes:
-        - ${MARKET_DATA_PATH}/barchart:${BARCHART_OUTPUT_DIR}:rw
-        - ${BC_UTILS_REPO_SOURCE_DIR}/configs/${ENV}/barchart.config.json:${BARCHART_QUOTES_CONFIG}
-        - ./build/env_files/${ENV}/barchart_quotes.env:$BC_UTILS_REPO_DIR/container.env
+        - ${HOST_DATA_DIR}/barchart:${BCU_OUTPUT_DIR}:rw
+        - $BCU_REPO_SOURCE_DIR/config/$ENV/barchart.config.json:${BCU_CONFIG_FILE}:r
+        - ./build/env_files/${ENV}/barchart_quotes.env:$BCU_REPO_DIR/container.env:r
       networks:
         trading_net:
           ipv4_address: ${BARCHART_QUOTES_IPV4_ADDRESS}
@@ -351,15 +347,12 @@ services:
           max-size: "5m"
           max-file: "3"
       env_file:
-#        - ./build/env_files/${ENV}/base.env
-#        - ./build/env_files/${ENV}/network.env
-#        - ./build/env_files/${ENV}/bc_utils_repo.env
         - ./build/env_files/${ENV}/barchart_quotes.env
 
   ibkr_quotes:
       container_name: ibkr_quotes${NAME_SUFFIX}
       profiles: ["quotes"]
-      user: "$BC_UTILS_USER"
+      user: "$BCU_USER"
       image: bc-utils
       pull_policy: never
       restart: no
@@ -367,9 +360,9 @@ services:
         - builder_quotes
         - ib_gateway
       volumes:
-        - ${MARKET_DATA_PATH}/ibkr:${BARCHART_OUTPUT_DIR}:rw
-        - ${CONFIG_REPO_SOURCE_DIR}/bc-utils/configs/${ENV}/ibkr.config.json:${IBKR_QUOTES_CONFIG}
-        - ./build/env_files/${ENV}/ibkr_quotes.env:$BC_UTILS_REPO_DIR/container.env
+        - ${HOST_DATA_DIR}/ibkr:${BCU_OUTPUT_DIR}:rw
+        - ${BCU_REPO_SOURCE_DIR}/config/$ENV/ibkr.config.json:${BCU_CONFIG_FILE}:r
+        - ./build/env_files/${ENV}/ibkr_quotes.env:${BCU_REPO_DIR}/container.env:r
       networks:
         trading_net:
           ipv4_address: ${IBKR_QUOTES_IPV4_ADDRESS}
@@ -378,9 +371,6 @@ services:
           max-size: "5m"
           max-file: "3"
       env_file:
-#        - ./build/env_files/${ENV}/base.env
-#        - ./build/env_files/${ENV}/network.env
-#        - ./build/env_files/${ENV}/bc_utils_repo.env
         - ./build/env_files/${ENV}/ibkr_quotes.env
 
 #  test:
