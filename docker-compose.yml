@@ -70,10 +70,10 @@ services:
         nofile:
           soft: 10000
           hard: 10000
+      environment:
+        TZ: ${TZ}
       env_file:
-        - ./build/env_files/${ENV}/base.env
         - ./build/env_files/${ENV}/ib_gateway.env
-
 
   jupyter:
       image: pysystemtrade_jupyter
@@ -103,10 +103,8 @@ services:
         options:
           max-size: "200k"
           max-file: "1"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/system_repo.env
+      environment:
+        TZ: ${TZ}
 
   builder_handler:
       container_name: builder_handler${NAME_SUFFIX}
@@ -124,9 +122,8 @@ services:
         options:
           max-size: "100k"
           max-file: "1"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/system_repo.env
+      environment:
+        TZ: ${TZ}
 
   stack_handler:
       image: pysystemtrade
@@ -151,10 +148,8 @@ services:
         options:
           max-size: "10m"
           max-file: "3"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/system_repo.env
+      environment:
+        TZ: ${TZ}
 
   price_updates:
       image: pysystemtrade
@@ -177,18 +172,14 @@ services:
         options:
           max-size: "10m"
           max-file: "3"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/system_repo.env
+      environment:
+        TZ: ${TZ}
+
 
   capital_update:
       image: pysystemtrade
       container_name: capital_update${NAME_SUFFIX}
       restart: no
-      environment:
-        TZ: ${TZ}
-        IPV4_NETWORK_PART: ${IPV4_NETWORK_PART}
       command: ["/bin/bash", "-c", "command_scripts/capital_update_commands.bash"]
       depends_on:
         - builder_handler
@@ -206,10 +197,8 @@ services:
         options:
           max-size: "10m"
           max-file: "3"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/system_repo.env
+      environment:
+        TZ: ${TZ}
 
   daily_processes:
       image: pysystemtrade
@@ -233,10 +222,8 @@ services:
         options:
           max-size: "10m"
           max-file: "3"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/system_repo.env
+      environment:
+        TZ: ${TZ}
 
   csv_backup:
       image: pysystemtrade
@@ -255,10 +242,8 @@ services:
         options:
           max-size: "200k"
           max-file: "1"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/system_repo.env
+      environment:
+        TZ: ${TZ}
 
   cleaner:
       image: pysystemtrade
@@ -278,10 +263,8 @@ services:
         options:
           max-size: "200k"
           max-file: "1"
-      env_file:
-        - ./build/env_files/${ENV}/base.env
-        - ./build/env_files/${ENV}/network.env
-        - ./build/env_files/${ENV}/system_repo.env
+      environment:
+        TZ: ${TZ}
 
   builder_quotes:
       container_name: builder_quotes${NAME_SUFFIX}
@@ -302,6 +285,8 @@ services:
         options:
           max-size: "100k"
           max-file: "1"
+      environment:
+        TZ: ${TZ}
 
   yahoo_quotes:
       container_name: yahoo_quotes${NAME_SUFFIX}
@@ -323,6 +308,8 @@ services:
         options:
           max-size: "5m"
           max-file: "3"
+      environment:
+        TZ: ${TZ}
       env_file:
         - ./build/env_files/${ENV}/yahoo_quotes.env
 
@@ -346,6 +333,8 @@ services:
         options:
           max-size: "5m"
           max-file: "3"
+      environment:
+        TZ: ${TZ}
       env_file:
         - ./build/env_files/${ENV}/barchart_quotes.env
 
@@ -370,6 +359,8 @@ services:
         options:
           max-size: "5m"
           max-file: "3"
+      environment:
+        TZ: ${TZ}
       env_file:
         - ./build/env_files/${ENV}/ibkr_quotes.env
 
