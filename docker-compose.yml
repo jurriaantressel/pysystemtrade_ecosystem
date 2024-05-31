@@ -129,8 +129,8 @@ services:
       image: pysystemtrade
       container_name: stack_handler${NAME_SUFFIX}
       restart: no
-      #command: ["/bin/bash", "-c", "command_scripts/stack_handler_commands.bash"]
-      command: ["tail", "-f", "/dev/null"]
+      command: ["/bin/bash", "-c", "command_scripts/stack_handler_commands.bash"]
+      #command: ["tail", "-f", "/dev/null"]
       depends_on:
         - builder_handler
         - ib_gateway
