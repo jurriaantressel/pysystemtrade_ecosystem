@@ -92,7 +92,7 @@ services:
         - ./csv_backup:/home/csv_backup
         - ./backtests:/home/backtests
         - ./logs/jupyter:/home/logs
-        - ${CONFIG_REPO_SOURCE_DIR}/private/${ENV}:${SYSTEM_REPO_DIR}/private
+        - ${SYSTEM_REPO_SOURCE_DIR}/config/private/${ENV}:${SYSTEM_REPO_DIR}/private
       depends_on:
         - ib_gateway
         - mongo_db
