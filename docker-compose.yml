@@ -137,7 +137,7 @@ services:
       volumes:
         - ./logs/stack_handler:/home/logs
         - parquet_store:$PARQUET_STORE
-        - ${CONFIG_REPO_SOURCE_DIR}/pysystemtrade/config/private/${ENV}:${SYSTEM_REPO_DIR}/private
+        - ${SYSTEM_REPO_SOURCE_DIR}/config/private/${ENV}:${SYSTEM_REPO_DIR}/private
       networks:
         trading_net:
           ipv4_address: ${STACK_HANDLER_IPV4_ADDRESS}
