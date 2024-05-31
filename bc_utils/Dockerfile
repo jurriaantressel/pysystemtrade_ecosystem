@@ -24,6 +24,7 @@ RUN apt-get update && \
 
 # Set timezone, permissions, and apply cron jobs
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    echo "BCU_REPO_DIR=c" >> /etc/environment && \
     chmod 0644 /etc/cron.d/mycron && \
     username=$(getent passwd $USER_ID | cut -d: -f1) && \
     crontab -u $username /etc/cron.d/mycron && \
