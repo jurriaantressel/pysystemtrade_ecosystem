@@ -35,7 +35,6 @@ logger.addHandler(c_handler)
 def wait_until_containers_has_finished(list_of_containers_to_finish: list,
                                        docker_client: docker.client,
                                        name_suffix: str):
-
     container_names_with_suffix = [name + name_suffix for name in list_of_containers_to_finish]
     set_of_containers_to_finish = set(container_names_with_suffix)
 
@@ -135,7 +134,6 @@ def run_container_and_wait_to_finish(container_name: str, docker_client: docker.
 
 
 def stop_container(container_name: str, docker_client: docker.client, name_suffix: str):
-
     try:
         container_object = docker_client.containers.get(container_id=container_name + name_suffix)
 
@@ -189,7 +187,6 @@ def git_commit_and_push_reports(commit_untracked_files: bool = True):
 
 def daily_pysys_flow(docker_client: docker.client,
                      name_suffix: str):
-
     """Handles the daily start and stop of the containers housing different pysys processes"""
 
     clean_slate_containers = ['cleaner']
@@ -266,8 +263,8 @@ def run_daily_container_management(docker_client: docker.client,
         now = datetime.now(pytz.timezone('Europe/London'))
 
         if ((int(weekday_start) <= now.isoweekday() <= int(int(weekday_end) - 1)) or
-            (now.isoweekday() >= int(weekday_start) and (now.isoweekday() == int(weekday_end) and
-                                                         now.hour < int(stop_hour)))):
+                (now.isoweekday() >= int(weekday_start) and (now.isoweekday() == int(weekday_end) and
+                                                             now.hour < int(stop_hour)))):
 
             if management_run_on_this_day.date() != now.date():
 
@@ -305,7 +302,7 @@ def run_daily_container_management(docker_client: docker.client,
                                           path_local_backup_folder=path_local_csv_backup_folder)
 
                 except Exception:
-                    logger.warning('An excpetion occured when running move_backup_csv_files', exc_info=True)
+                    logger.warning('An exception occurred when running move_backup_csv_files', exc_info=True)
 
                 try:
                     move_db_backup_files(samba_user=samba_user,
@@ -317,7 +314,7 @@ def run_daily_container_management(docker_client: docker.client,
                                          path_remote_backup_folder=Path('db_backup'))
 
                 except Exception:
-                    logger.warning('An excpetion occured when running move_db_backup_files', exc_info=True)
+                    logger.warning('An exception occurred when running move_db_backup_files', exc_info=True)
 
             else:
                 logger.debug('Daily run already done during this session. waiting until new day starts')
@@ -328,8 +325,7 @@ def run_daily_container_management(docker_client: docker.client,
             time.sleep(600)
 
 
-if __name__ == '__main__':
-
+def main():
     config = dotenv_values(".env")
 
     NAME_SUFFIX = config["NAME_SUFFIX"]
@@ -338,7 +334,7 @@ if __name__ == '__main__':
     HOUR_TO_STOP_WORKFLOW_ON_END_WEEKDAY = config["HOUR_TO_STOP_WORKFLOW_ON_END_WEEKDAY"]
     samba_user = config['SAMBA_USER']
     samba_password = config['SAMBA_PASSWORD']
-    samba_share = config['SAMBA_SHARE']         # share name of remote server
+    samba_share = config['SAMBA_SHARE']  # share name of remote server
     samba_server_ip = config['SAMBA_SERVER_IP']
     samba_remote_name = config['SAMBA_REMOTE_NAME']
 
@@ -361,3 +357,5 @@ if __name__ == '__main__':
                                    path_local_db_backup_folder=path_local_db_backup_folder)
 
 
+if __name__ == '__main__':
+    main()

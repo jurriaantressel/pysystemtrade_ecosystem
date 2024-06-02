@@ -10,6 +10,8 @@ services:
       networks:
         trading_net:
           ipv4_address: ${MONGO_DB_IPV4_ADDRESS}
+      ports:
+        - "27017:27017"
       logging:
         options:
           max-size: "5m"
