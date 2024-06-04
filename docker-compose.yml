@@ -95,6 +95,7 @@ services:
         - ./backtests:/home/backtests
         - ./logs/jupyter:/home/logs
         - ${SYSTEM_REPO_SOURCE_DIR}/config/private/${ENV}:${SYSTEM_REPO_DIR}/private
+        - ${HOST_DATA_DIR}:/data:r
       depends_on:
         - ib_gateway
         - mongo_db
