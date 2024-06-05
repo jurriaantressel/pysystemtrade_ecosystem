@@ -1,7 +1,6 @@
 services:
 
   mongo_db:
-      profiles: ["min"]
       container_name: mongo_db${NAME_SUFFIX}
       image: mongo
       restart: no
@@ -54,7 +53,6 @@ services:
         TZ: ${TZ}
 
   ib_gateway:
-      profiles: ["min"]
       container_name: ib_gateway${NAME_SUFFIX}
       image: ghcr.io/extrange/ibkr:stable
       restart: no
