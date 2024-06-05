@@ -1,6 +1,7 @@
 services:
 
   mongo_db:
+      profiles: ["min"]
       container_name: mongo_db${NAME_SUFFIX}
       image: mongo
       restart: no
@@ -53,6 +54,7 @@ services:
         TZ: ${TZ}
 
   ib_gateway:
+      profiles: ["min"]
       container_name: ib_gateway${NAME_SUFFIX}
       image: ghcr.io/extrange/ibkr:stable
       restart: no
@@ -78,6 +80,7 @@ services:
         - ./build/env_files/${ENV}/ib_gateway.env
 
   jupyter:
+      profiles: ["min"]
       image: pysystemtrade_jupyter
       build:
         context: .
@@ -294,7 +297,7 @@ services:
 
   yahoo_quotes:
       container_name: yahoo_quotes${NAME_SUFFIX}
-      profiles: ["quotes"]
+      profiles: ["quotes", "min"]
       user: ${BCU_USER}
       image: bc-utils
       pull_policy: never
@@ -319,7 +322,7 @@ services:
 
   barchart_quotes:
       container_name: barchart_quotes${NAME_SUFFIX}
-      profiles: ["quotes"]
+      profiles: ["quotes", "min"]
       user: "$BCU_USER"
       restart: no
       image: bc-utils
@@ -344,7 +347,7 @@ services:
 
   ibkr_quotes:
       container_name: ibkr_quotes${NAME_SUFFIX}
-      profiles: ["quotes"]
+      profiles: ["quotes", "min"]
       user: "$BCU_USER"
       image: bc-utils
       pull_policy: never
@@ -413,6 +416,7 @@ networks:
       config:
         - subnet: ${IPV4_NETWORK_PART}0.0/16
           gateway: ${GATEWAY_IPV4_ADDRESS}
+
 
 
  # Backup concept; https://stackoverflow.com/a/56432886/1020693
