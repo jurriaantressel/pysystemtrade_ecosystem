@@ -273,7 +273,7 @@ services:
 
   builder_quotes:
       container_name: builder_quotes${NAME_SUFFIX}
-      profiles: ["quotes"]
+      profiles: ["quotes", "min"]
       image: bc-utils
       pull_policy: never
       build:
