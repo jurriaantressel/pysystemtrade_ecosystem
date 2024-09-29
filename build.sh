@@ -5,11 +5,11 @@ echo "Building pysystemtrade_ecosystem"
 BUILD_DIR="./build"
 if [[ -d "$BUILD_DIR" ]]; then
   echo "Removing existing build directory: $BUILD_DIR"
-  rm -rf "$BUILD_DIR"
+  sudo rm -rf "$BUILD_DIR"
 fi
 
 install -d -m 2775 $BUILD_DIR
-chown :users $BUILD_DIR
+# chown :users $BUILD_DIR
 
 CONFIG_PROJECT_NAME="pysystemtrade_config"
 CONFIG_BUILD_DIR="../$CONFIG_PROJECT_NAME/build"
@@ -45,6 +45,7 @@ if [[ ! -d "$BCU_BUILD_DIR" ]]; then
 else
   mkdir -p "$BUILD_DIR/bc-utils"
   cp -r "$BCU_BUILD_DIR/." "$BCU_DEST_DIR/"
+  cp "$BCU_DEST_DIR/env_files/$ENV"/*.env "$BUILD_DIR/env_files/$ENV"
 fi
 
 chmod -R 775 $BUILD_DIR

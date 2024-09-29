@@ -58,7 +58,7 @@ services:
       restart: no
       ports:
         - "6082:6080"
-        - "${IB_GATEWAY_PORT}:8888"
+        - "${IB_GATEWAY_PORT}:${IB_GATEWAY_PORT}"
       volumes:
         - gateway_jts:/root/Jts
       networks:
@@ -131,6 +131,7 @@ services:
 
   stack_handler:
       image: pysystemtrade
+      pull_policy: never
       container_name: stack_handler${NAME_SUFFIX}
       restart: no
       command: ["/bin/bash", "-c", "command_scripts/stack_handler_commands.bash"]
@@ -158,6 +159,7 @@ services:
 
   price_updates:
       image: pysystemtrade
+      pull_policy: never
       container_name: price_updates${NAME_SUFFIX}
       restart: no
       command: ["/bin/bash", "-c", "command_scripts/daily_prices_updates_commands.bash"]
@@ -183,6 +185,7 @@ services:
 
   capital_update:
       image: pysystemtrade
+      pull_policy: never
       container_name: capital_update${NAME_SUFFIX}
       restart: no
       command: ["/bin/bash", "-c", "command_scripts/capital_update_commands.bash"]
@@ -207,6 +210,7 @@ services:
 
   daily_processes:
       image: pysystemtrade
+      pull_policy: never
       container_name: daily_processes${NAME_SUFFIX}
       command: ["/bin/bash", "-c", "command_scripts/daily_processes_commands.bash"]
       depends_on:
@@ -232,6 +236,7 @@ services:
 
   csv_backup:
       image: pysystemtrade
+      pull_policy: never
       depends_on:
         - builder_handler
         - mongo_db
@@ -252,6 +257,7 @@ services:
 
   cleaner:
       image: pysystemtrade
+      pull_policy: never
       container_name: cleaner${NAME_SUFFIX}
       restart: no
       command: ["/bin/bash", "-c", "command_scripts/cleaner_commands.bash"]

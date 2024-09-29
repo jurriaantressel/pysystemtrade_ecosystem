@@ -34,8 +34,11 @@ WORKDIR $SYSTEM_REPO_DIR
 # Install requirements and package
 RUN pip3 install jupyterlab && \
     cat requirements.txt && \
-    pip3 install --requirement requirements.txt && \
-    pip3 install -e .
+    pip3 install --requirement requirements.txt
+#&& \
+#    pip3 install -e .
+
+RUN python3 setup.py install
 
 COPY ./jupyter/jupyter_server_config.py /usr/jupyter_server_config.py
 

@@ -32,9 +32,10 @@ WORKDIR $SYSTEM_REPO_DIR
 
 # Install requirements and package
 RUN cat requirements.txt && \
-    pip3 install --requirement requirements.txt && \
-    pip3 install -e .
-
+    pip3 install --requirement requirements.txt 
+#&& \
+#    pip3 install -e .
+RUN python3 setup.py install
 
 COPY ./pysystemtrade/command_scripts ./command_scripts
 RUN find ./command_scripts -type f -name "*.bash" -exec chmod +x {} \;
