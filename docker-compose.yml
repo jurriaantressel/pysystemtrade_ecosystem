@@ -1,379 +1,410 @@
 services:
 
   mongo_db:
-      container_name: mongo_db${NAME_SUFFIX}
-      image: mongo
-      restart: no
-      volumes:
-        - mongo_db:/data/db
-        - mongo_config:/data/configdb
-      networks:
-        trading_net:
-          ipv4_address: ${MONGO_DB_IPV4_ADDRESS}
-      ports:
-        - "27017:27017"
-      logging:
-        options:
-          max-size: "5m"
-          max-file: "3"
-      environment:
-        TZ: ${TZ}
+    container_name: mongo_db${NAME_SUFFIX}
+    image: mongo
+    restart: no
+    volumes:
+      - mongo_db:/data/db
+      - mongo_config:/data/configdb
+    networks:
+      trading_net:
+        ipv4_address: ${MONGO_DB_IPV4_ADDRESS}
+    ports:
+      - "27017:27017"
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "3"
+    environment:
+      TZ: ${TZ}
 
   db_backup:
-      image: alpine
-      container_name: db_backup${NAME_SUFFIX}
-      volumes:
-        - mongo_db:/data/db
-        - mongo_config:/data/configdb
-        - ${DB_BACKUP_PATH}:/backup
-      command: sh -c "tar -zcvf /backup/mongo.tar.gz /data/"
-      init: true
-      logging:
-        options:
-          max-size: "200k"
-          max-file: "1"
-      environment:
-        TZ: ${TZ}
+    image: alpine
+    container_name: db_backup${NAME_SUFFIX}
+    volumes:
+      - mongo_db:/data/db
+      - mongo_config:/data/configdb
+      - ${DB_BACKUP_PATH}:/backup
+    command: sh -c "tar -zcvf /backup/mongo.tar.gz /data/"
+    init: true
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "1"
+    environment:
+      TZ: ${TZ}
 
   db_restore:
-      image: alpine
-      profiles: ["restore"]
-      container_name: db_restore${NAME_SUFFIX}
-      volumes:
-        - mongo_db:/data/db
-        - mongo_config:/data/configdb
-        - ${DB_BACKUP_PATH}:/backup
-      command: sh -c "cd /data/ && tar -zxvf /backup/mongo.tar.gz --strip 1"
-      init: true
-      logging:
-        options:
-          max-size: "200k"
-          max-file: "1"
-      environment:
-        TZ: ${TZ}
+    image: alpine
+    profiles: ["restore"]
+    container_name: db_restore${NAME_SUFFIX}
+    volumes:
+      - mongo_db:/data/db
+      - mongo_config:/data/configdb
+      - ${DB_BACKUP_PATH}:/backup
+    command: sh -c "cd /data/ && tar -zxvf /backup/mongo.tar.gz --strip 1"
+    init: true
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "1"
+    environment:
+      TZ: ${TZ}
 
   ib_gateway:
-      container_name: ib_gateway${NAME_SUFFIX}
-      image: ghcr.io/extrange/ibkr:stable
-      restart: no
-      ports:
-        - "6082:6080"
-        - "${IB_GATEWAY_PORT}:${IB_GATEWAY_PORT}"
-      volumes:
-        - gateway_jts:/root/Jts
-      networks:
-        trading_net:
-          ipv4_address: ${IB_GATEWAY_IPV4_ADDRESS}
-      logging:
-        options:
-          max-size: "1m"
-          max-file: "2"
-      ulimits:
-        nofile:
-          soft: 10000
-          hard: 10000
-      environment:
-        TZ: ${TZ}
-      env_file:
-        - ./build/env_files/${ENV}/ib_gateway.env
+    container_name: ib_gateway${NAME_SUFFIX}
+    image: ghcr.io/gnzsnz/ib-gateway:stable
+    restart: no
+    volumes:
+      - gateway_jts:/home/ibgateway/Jts
+    networks:
+      trading_net:
+        ipv4_address: ${IB_GATEWAY_IPV4_ADDRESS}
+    ports:
+      - "${IB_GATEWAY_PORT}:${SOCAT_GATEWAY_PORT}"
+      - "127.0.0.1:5900:5900"
+    logging:
+      options:
+        max-size: "1m"
+        max-file: "2"
+    ulimits:
+      nofile:
+        soft: 10000
+        hard: 10000
+    env_file:
+      - ./build/env_files/${ENV}/ib_gateway.env
+    environment:
+      TWS_USERID: ${TWS_USERID}
+      TWS_PASSWORD: ${TWS_PASSWORD}
+      TRADING_MODE: ${TRADING_MODE:-paper}
+      TWS_USERID_PAPER: ${TWS_USERID_PAPER:-}
+      TWS_PASSWORD_PAPER: ${TWS_PASSWORD_PAPER:-}
+      TWS_SETTINGS_PATH: ${TWS_SETTINGS_PATH:-}
+      TWS_ACCEPT_INCOMING: ${TWS_ACCEPT_INCOMING:-manual}
+      READ_ONLY_API: ${READ_ONLY_API:-}
+      VNC_SERVER_PASSWORD: ${VNC_SERVER_PASSWORD:-}
+      TWOFA_TIMEOUT_ACTION: ${TWOFA_TIMEOUT_ACTION:-exit}
+      BYPASS_WARNING: ${BYPASS_WARNING:-}
+      AUTO_RESTART_TIME: ${AUTO_RESTART_TIME:-}
+      AUTO_LOGOFF_TIME: ${AUTO_LOGOFF_TIME:-}
+      TWS_COLD_RESTART: ${TWS_COLD_RESTART:-}
+      SAVE_TWS_SETTINGS: ${SAVE_TWS_SETTINGS:-}
+      RELOGIN_AFTER_TWOFA_TIMEOUT: ${RELOGIN_AFTER_TWOFA_TIMEOUT:-no}
+      TWOFA_EXIT_INTERVAL: ${TWOFA_EXIT_INTERVAL:-60}
+      TWOFA_DEVICE: ${TWOFA_DEVICE:-}
+      EXISTING_SESSION_DETECTED_ACTION: ${EXISTING_SESSION_DETECTED_ACTION:-primary}
+      ALLOW_BLIND_TRADING: ${ALLOW_BLIND_TRADING:-no}
+      TIME_ZONE: ${TZ}
+      TZ: ${TZ}
+      CUSTOM_CONFIG: ${CUSTOM_CONFIG:-NO}
+      JAVA_HEAP_SIZE: ${JAVA_HEAP_SIZE:-}
+      SSH_TUNNEL: ${SSH_TUNNEL:-}
+      SSH_OPTIONS: ${SSH_OPTIONS:-}
+      SSH_ALIVE_INTERVAL: ${SSH_ALIVE_INTERVAL:-}
+      SSH_ALIVE_COUNT: ${SSH_ALIVE_COUNT:-}
+      SSH_PASSPHRASE: ${SSH_PASSPHRASE:-}
+      SSH_REMOTE_PORT: ${SSH_REMOTE_PORT:-}
+      SSH_USER_TUNNEL: ${SSH_USER_TUNNEL:-}
+      SSH_RESTART: ${SSH_RESTART:-}
+      SSH_VNC_PORT: ${SSH_VNC_PORT:-}
 
   jupyter:
-      profiles: ["min"]
-      image: pysystemtrade_jupyter
-      build:
-        context: .
-        dockerfile: ./jupyter/Dockerfile
-        args:
-          SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
-          SYSTEM_REPO_DIR: ${SYSTEM_REPO_DIR}
-      container_name: jupyter${NAME_SUFFIX}
-      restart: no
-      ports:
-        - "8890:8888"
-      volumes:
-        - ./reports:/home/reports
-        - ./csv_backup:/home/csv_backup
-        - ./backtests:/home/backtests
-        - ./logs/jupyter:/home/logs
-        - ${SYSTEM_REPO_SOURCE_DIR}/config/private/${ENV}:${SYSTEM_REPO_DIR}/private
-        - ${HOST_DATA_DIR}:/data:r
-      depends_on:
-        - ib_gateway
-        - mongo_db
-      networks:
-        trading_net:
-          ipv4_address: ${JUPYTER_IPV4_ADDRESS}
-      logging:
-        options:
-          max-size: "200k"
-          max-file: "1"
-      environment:
-        TZ: ${TZ}
+    profiles: ["min"]
+    image: pysystemtrade_jupyter
+    build:
+      context: .
+      dockerfile: ./jupyter/Dockerfile
+      args:
+        SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
+        SYSTEM_REPO_DIR: ${SYSTEM_REPO_DIR}
+    container_name: jupyter${NAME_SUFFIX}
+    restart: no
+    ports:
+      - "8890:8888"
+    volumes:
+      - ./reports:/home/reports
+      - ./csv_backup:/home/csv_backup
+      - ./backtests:/home/backtests
+      - ./logs/jupyter:/home/logs
+      - ${SYSTEM_REPO_SOURCE_DIR}/config/private/${ENV}:${SYSTEM_REPO_DIR}/private
+      - ${HOST_DATA_DIR}:/data:r
+    depends_on:
+      - ib_gateway
+      - mongo_db
+    networks:
+      trading_net:
+        ipv4_address: ${JUPYTER_IPV4_ADDRESS}
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "1"
+    environment:
+      TZ: ${TZ}
 
   builder_handler:
-      container_name: builder_handler${NAME_SUFFIX}
-      image: pysystemtrade
-      pull_policy: never
-      build:
-        context: .
-        dockerfile: ./pysystemtrade/Dockerfile
-        args:
-          SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
-          SYSTEM_REPO_DIR: ${SYSTEM_REPO_DIR}
-      restart: no
-      entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
-      logging:
-        options:
-          max-size: "100k"
-          max-file: "1"
-      environment:
-        TZ: ${TZ}
+    container_name: builder_handler${NAME_SUFFIX}
+    image: pysystemtrade
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: ./pysystemtrade/Dockerfile
+      args:
+        SYSTEM_REPO_SOURCE_DIR: ${SYSTEM_REPO_SOURCE_DIR}
+        SYSTEM_REPO_DIR: ${SYSTEM_REPO_DIR}
+    restart: no
+    entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
+    logging:
+      options:
+        max-size: "100k"
+        max-file: "1"
+    environment:
+      TZ: ${TZ}
 
   stack_handler:
-      image: pysystemtrade
-      pull_policy: never
-      container_name: stack_handler${NAME_SUFFIX}
-      restart: no
-      command: ["/bin/bash", "-c", "command_scripts/stack_handler_commands.bash"]
-      #command: ["tail", "-f", "/dev/null"]
-      depends_on:
-        - builder_handler
-        - ib_gateway
-        - mongo_db
-      volumes:
-        - ./logs/stack_handler:/home/logs
-        - parquet_store:$PARQUET_STORE
-        - ${SYSTEM_REPO_SOURCE_DIR}/config/private/${ENV}:${SYSTEM_REPO_DIR}/private
-      networks:
-        trading_net:
-          ipv4_address: ${STACK_HANDLER_IPV4_ADDRESS}
-      stdin_open: true
-      tty: true
-      init: true
-      logging:
-        options:
-          max-size: "10m"
-          max-file: "3"
-      environment:
-        TZ: ${TZ}
+    image: pysystemtrade
+    pull_policy: never
+    container_name: stack_handler${NAME_SUFFIX}
+    restart: no
+    command: ["/bin/bash", "-c", "command_scripts/stack_handler_commands.bash"]
+    #command: ["tail", "-f", "/dev/null"]
+    depends_on:
+      - builder_handler
+      - ib_gateway
+      - mongo_db
+    volumes:
+      - ./logs/stack_handler:/home/logs
+      - parquet_store:$PARQUET_STORE
+      - ${SYSTEM_REPO_SOURCE_DIR}/config/private/${ENV}:${SYSTEM_REPO_DIR}/private
+    networks:
+      trading_net:
+        ipv4_address: ${STACK_HANDLER_IPV4_ADDRESS}
+    stdin_open: true
+    tty: true
+    init: true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      TZ: ${TZ}
 
   price_updates:
-      image: pysystemtrade
-      pull_policy: never
-      container_name: price_updates${NAME_SUFFIX}
-      restart: no
-      command: ["/bin/bash", "-c", "command_scripts/daily_prices_updates_commands.bash"]
-      depends_on:
-        - builder_handler
-        - ib_gateway
-        - mongo_db
-      volumes:
-        - ./logs/price_updates:/home/logs
-      networks:
-        trading_net:
-          ipv4_address: ${PRICE_UPDATES_IPV4_ADDRESS}
-      stdin_open: true
-      tty: true
-      init: true
-      logging:
-        options:
-          max-size: "10m"
-          max-file: "3"
-      environment:
-        TZ: ${TZ}
-
+    image: pysystemtrade
+    pull_policy: never
+    container_name: price_updates${NAME_SUFFIX}
+    restart: no
+    command: ["/bin/bash", "-c", "command_scripts/daily_prices_updates_commands.bash"]
+    depends_on:
+      - builder_handler
+      - ib_gateway
+      - mongo_db
+    volumes:
+      - ./logs/price_updates:/home/logs
+    networks:
+      trading_net:
+        ipv4_address: ${PRICE_UPDATES_IPV4_ADDRESS}
+    stdin_open: true
+    tty: true
+    init: true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      TZ: ${TZ}
 
   capital_update:
-      image: pysystemtrade
-      pull_policy: never
-      container_name: capital_update${NAME_SUFFIX}
-      restart: no
-      command: ["/bin/bash", "-c", "command_scripts/capital_update_commands.bash"]
-      depends_on:
-        - builder_handler
-        - ib_gateway
-        - mongo_db
-      volumes:
-        - ./logs/capital_update:/home/logs
-      networks:
-        trading_net:
-          ipv4_address: ${CAPITAL_UPDATE_IPV4_ADDRESS}
-      stdin_open: true
-      tty: true
-      init: true
-      logging:
-        options:
-          max-size: "10m"
-          max-file: "3"
-      environment:
-        TZ: ${TZ}
+    image: pysystemtrade
+    pull_policy: never
+    container_name: capital_update${NAME_SUFFIX}
+    restart: no
+    command: ["/bin/bash", "-c", "command_scripts/capital_update_commands.bash"]
+    depends_on:
+      - builder_handler
+      - ib_gateway
+      - mongo_db
+    volumes:
+      - ./logs/capital_update:/home/logs
+    networks:
+      trading_net:
+        ipv4_address: ${CAPITAL_UPDATE_IPV4_ADDRESS}
+    stdin_open: true
+    tty: true
+    init: true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      TZ: ${TZ}
 
   daily_processes:
-      image: pysystemtrade
-      pull_policy: never
-      container_name: daily_processes${NAME_SUFFIX}
-      command: ["/bin/bash", "-c", "command_scripts/daily_processes_commands.bash"]
-      depends_on:
-        - builder_handler
-        - ib_gateway
-        - mongo_db
-      volumes:
-        - ./reports:/home/reports
-        - ./backtests:/home/backtests
-        - ./logs/daily_processes:/home/logs
-      networks:
-        trading_net:
-          ipv4_address: ${DAILY_PROCESSES_IPV4_ADDRESS}
-      stdin_open: true
-      tty: true
-      init: true
-      logging:
-        options:
-          max-size: "10m"
-          max-file: "3"
-      environment:
-        TZ: ${TZ}
+    image: pysystemtrade
+    pull_policy: never
+    container_name: daily_processes${NAME_SUFFIX}
+    command: ["/bin/bash", "-c", "command_scripts/daily_processes_commands.bash"]
+    depends_on:
+      - builder_handler
+      - ib_gateway
+      - mongo_db
+    volumes:
+      - ./reports:/home/reports
+      - ./backtests:/home/backtests
+      - ./logs/daily_processes:/home/logs
+    networks:
+      trading_net:
+        ipv4_address: ${DAILY_PROCESSES_IPV4_ADDRESS}
+    stdin_open: true
+    tty: true
+    init: true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      TZ: ${TZ}
 
   csv_backup:
-      image: pysystemtrade
-      pull_policy: never
-      depends_on:
-        - builder_handler
-        - mongo_db
-      container_name: csv_backup${NAME_SUFFIX}
-      networks:
-        trading_net:
-          ipv4_address: ${CSV_BACKUP_IPV4_ADDRESS}
-      volumes:
-        - ./csv_backup:/home/csv_backup
-      command: sh -c "cd sysproduction/linux/scripts; backup_arctic_to_csv"
-      init: true
-      logging:
-        options:
-          max-size: "200k"
-          max-file: "1"
-      environment:
-        TZ: ${TZ}
+    image: pysystemtrade
+    pull_policy: never
+    depends_on:
+      - builder_handler
+      - mongo_db
+    container_name: csv_backup${NAME_SUFFIX}
+    networks:
+      trading_net:
+        ipv4_address: ${CSV_BACKUP_IPV4_ADDRESS}
+    volumes:
+      - ./csv_backup:/home/csv_backup
+    command: sh -c "cd sysproduction/linux/scripts; backup_arctic_to_csv"
+    init: true
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "1"
+    environment:
+      TZ: ${TZ}
 
   cleaner:
-      image: pysystemtrade
-      pull_policy: never
-      container_name: cleaner${NAME_SUFFIX}
-      restart: no
-      command: ["/bin/bash", "-c", "command_scripts/cleaner_commands.bash"]
-      depends_on:
-        - builder_handler
-        - mongo_db
-      networks:
-        trading_net:
-          ipv4_address: ${CLEANER_IPV4_ADDRESS}
-      stdin_open: true
-      tty: true
-      init: true
-      logging:
-        options:
-          max-size: "200k"
-          max-file: "1"
-      environment:
-        TZ: ${TZ}
+    image: pysystemtrade
+    pull_policy: never
+    container_name: cleaner${NAME_SUFFIX}
+    restart: no
+    command: ["/bin/bash", "-c", "command_scripts/cleaner_commands.bash"]
+    depends_on:
+      - builder_handler
+      - mongo_db
+    networks:
+      trading_net:
+        ipv4_address: ${CLEANER_IPV4_ADDRESS}
+    stdin_open: true
+    tty: true
+    init: true
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "1"
+    environment:
+      TZ: ${TZ}
 
   builder_quotes:
-      container_name: builder_quotes${NAME_SUFFIX}
-      profiles: ["quotes", "min"]
-      image: bc-utils
-      pull_policy: never
-      build:
-        context: .
-        dockerfile: ./bc_utils/Dockerfile
-        args:
-          USER_ID: ${USER_ID}
-          GROUP_ID: ${GROUP_ID}
-          BCU_REPO_SOURCE_DIR: ${BCU_REPO_SOURCE_DIR}
-          BCU_REPO_DIR: ${BCU_REPO_DIR}
-      restart: no
-      entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
-      logging:
-        options:
-          max-size: "100k"
-          max-file: "1"
-      environment:
-        TZ: ${TZ}
+    container_name: builder_quotes${NAME_SUFFIX}
+    profiles: ["quotes", "min"]
+    image: bc-utils
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: ./bc_utils/Dockerfile
+      args:
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+        BCU_REPO_SOURCE_DIR: ${BCU_REPO_SOURCE_DIR}
+        BCU_REPO_DIR: ${BCU_REPO_DIR}
+    restart: no
+    entrypoint: ["/bin/sh", "-c", "echo 'Exiting immediately by design: service only provides image build.'; exit 0"]
+    logging:
+      options:
+        max-size: "100k"
+        max-file: "1"
+    environment:
+      TZ: ${TZ}
 
   yahoo_quotes:
-      container_name: yahoo_quotes${NAME_SUFFIX}
-      profiles: ["quotes", "min"]
-      user: ${BCU_USER}
-      image: bc-utils
-      pull_policy: never
-      restart: no
-      volumes:
-        - ${HOST_DATA_DIR}/yahoo:${BCU_OUTPUT_DIR}:rw
-        - ${BCU_REPO_SOURCE_DIR}/config/${ENV}/yahoo.config.json:${BCU_CONFIG_FILE}:r
-        - ./build/env_files/${ENV}/yahoo_quotes.env:$BCU_REPO_DIR/container.env
-      networks:
-        trading_net:
-          ipv4_address: ${YAHOO_QUOTES_IPV4_ADDRESS}
-      depends_on:
-        - builder_quotes
-      logging:
-        options:
-          max-size: "5m"
-          max-file: "3"
-      environment:
-        TZ: ${TZ}
-      env_file:
-        - ./build/env_files/${ENV}/yahoo_quotes.env
+    container_name: yahoo_quotes${NAME_SUFFIX}
+    profiles: ["quotes", "min"]
+    user: ${BCU_USER}
+    image: bc-utils
+    pull_policy: never
+    restart: no
+    volumes:
+      - ${HOST_DATA_DIR}/yahoo:${BCU_OUTPUT_DIR}:rw
+      - ${BCU_REPO_SOURCE_DIR}/config/${ENV}/yahoo.config.json:${BCU_CONFIG_FILE}:r
+      - ./build/env_files/${ENV}/yahoo_quotes.env:$BCU_REPO_DIR/container.env
+    networks:
+      trading_net:
+        ipv4_address: ${YAHOO_QUOTES_IPV4_ADDRESS}
+    depends_on:
+      - builder_quotes
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "3"
+    environment:
+      TZ: ${TZ}
+    env_file:
+      - ./build/env_files/${ENV}/yahoo_quotes.env
 
   barchart_quotes:
-      container_name: barchart_quotes${NAME_SUFFIX}
-      profiles: ["quotes", "min"]
-      user: "$BCU_USER"
-      restart: no
-      image: bc-utils
-      pull_policy: never
-      volumes:
-        - ${HOST_DATA_DIR}/barchart:${BCU_OUTPUT_DIR}:rw
-        - $BCU_REPO_SOURCE_DIR/config/$ENV/barchart.config.json:${BCU_CONFIG_FILE}:r
-        - ./build/env_files/${ENV}/barchart_quotes.env:$BCU_REPO_DIR/container.env:r
-      networks:
-        trading_net:
-          ipv4_address: ${BARCHART_QUOTES_IPV4_ADDRESS}
-      depends_on:
-        - builder_quotes
-      logging:
-        options:
-          max-size: "5m"
-          max-file: "3"
-      environment:
-        TZ: ${TZ}
-      env_file:
-        - ./build/env_files/${ENV}/barchart_quotes.env
+    container_name: barchart_quotes${NAME_SUFFIX}
+    profiles: ["quotes", "min"]
+    user: "$BCU_USER"
+    restart: no
+    image: bc-utils
+    pull_policy: never
+    volumes:
+      - ${HOST_DATA_DIR}/barchart:${BCU_OUTPUT_DIR}:rw
+      - $BCU_REPO_SOURCE_DIR/config/$ENV/barchart.config.json:${BCU_CONFIG_FILE}:r
+      - ./build/env_files/${ENV}/barchart_quotes.env:$BCU_REPO_DIR/container.env:r
+    networks:
+      trading_net:
+        ipv4_address: ${BARCHART_QUOTES_IPV4_ADDRESS}
+    depends_on:
+      - builder_quotes
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "3"
+    environment:
+      TZ: ${TZ}
+    env_file:
+      - ./build/env_files/${ENV}/barchart_quotes.env
 
   ibkr_quotes:
-      container_name: ibkr_quotes${NAME_SUFFIX}
-      profiles: ["quotes", "min"]
-      user: "$BCU_USER"
-      image: bc-utils
-      pull_policy: never
-      restart: no
-      depends_on:
-        - builder_quotes
-        - ib_gateway
-      volumes:
-        - ${HOST_DATA_DIR}/ibkr:${BCU_OUTPUT_DIR}:rw
-        - ${BCU_REPO_SOURCE_DIR}/config/$ENV/ibkr.config.json:${BCU_CONFIG_FILE}:r
-        - ./build/env_files/${ENV}/ibkr_quotes.env:${BCU_REPO_DIR}/container.env:r
-      networks:
-        trading_net:
-          ipv4_address: ${IBKR_QUOTES_IPV4_ADDRESS}
-      logging:
-        options:
-          max-size: "5m"
-          max-file: "3"
-      environment:
-        TZ: ${TZ}
-      env_file:
-        - ./build/env_files/${ENV}/ibkr_quotes.env
+    container_name: ibkr_quotes${NAME_SUFFIX}
+    profiles: ["quotes", "min"]
+    user: "$BCU_USER"
+    image: bc-utils
+    pull_policy: never
+    restart: no
+    depends_on:
+      - builder_quotes
+      - ib_gateway
+    volumes:
+      - ${HOST_DATA_DIR}/ibkr:${BCU_OUTPUT_DIR}:rw
+      - ${BCU_REPO_SOURCE_DIR}/config/$ENV/ibkr.config.json:${BCU_CONFIG_FILE}:r
+      - ./build/env_files/${ENV}/ibkr_quotes.env:${BCU_REPO_DIR}/container.env:r
+    networks:
+      trading_net:
+        ipv4_address: ${IBKR_QUOTES_IPV4_ADDRESS}
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "3"
+    environment:
+      TZ: ${TZ}
+    env_file:
+      - ./build/env_files/${ENV}/ibkr_quotes.env
 
 #  test:
 #      container_name: builder_handler${NAME_SUFFIX}
